@@ -15,14 +15,16 @@ arcconf getconfig 1 > $tempfile
 
 for i in `seq 0 11`
 do 
-  echo
   echo "Device #$i"
-  WWN=`awk "BEGIN{RS=ORS="\n\n";FS=OFS="\n"}/Device #$i/ {print;exit}" $tempfile | grep "World-wide name"`
-  echo -e "   \c"
+  WWN=`awk "BEGIN{RS=ORS="\n\n";FS=OFS="\n"}/Device #$i/ {print;exit}" $tempfile | grep "World-wide name" | awk -F: '{print $2}'`
+  TotalSize=`awk "BEGIN{RS=ORS="\n\n";FS=OFS="\n"}/Device #$i/ {print;exit}" $tempfile | grep "Total Size"| awk -F: '{print $2}'`
+  echo -e "   World-wide name : \c"
   echo $WWN
-  WWNID=`echo $WWN | awk -F: '{print $2}'`
   echo -e "   Device name     : \c"
-  ls -la /dev/disk/by-id | grep -i  $WWNID | awk '{print $11}'
+  echo "/dev/`ls -la /dev/disk/by-id | grep -i  $WWN | awk -F/ '{print $NF}'`"
+  echo -e "   Total size      : \c"
+  echo $TotalSize
+  
 done
 
 rm $tempfile
