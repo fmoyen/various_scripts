@@ -1,5 +1,15 @@
 #/bin/bash
 
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You need to be root to run this script"
+  echo "think about SUDO command"
+  echo 
+  exit 1
+fi
+
+
 tempfile=/tmp/arcconf_getconfig.txt
 arcconf getconfig 1 > $tempfile
 
