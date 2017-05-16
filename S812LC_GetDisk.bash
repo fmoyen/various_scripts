@@ -18,10 +18,13 @@ do
   echo "Device #$i"
   WWN=`awk "BEGIN{RS=ORS="\n\n";FS=OFS="\n"}/Device #$i/ {print;exit}" $tempfile | grep "World-wide name" | awk -F: '{print $2}'`
   TotalSize=`awk "BEGIN{RS=ORS="\n\n";FS=OFS="\n"}/Device #$i/ {print;exit}" $tempfile | grep "Total Size"| awk -F: '{print $2}'`
+  SSD=`awk "BEGIN{RS=ORS="\n\n";FS=OFS="\n"}/Device #$i/ {print;exit}" $tempfile | grep "SSD"| awk -F: '{print $2}'`
   echo -e "   World-wide name : \c"
   echo $WWN
   echo -e "   Device name     : \c"
   echo "/dev/`ls -la /dev/disk/by-id | grep -i  $WWN | awk -F/ '{print $NF}'`"
+  echo -e "   SSD             : \c"
+  echo $SSD
   echo -e "   Total size      : \c"
   echo $TotalSize
   
