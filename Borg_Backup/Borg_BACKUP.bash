@@ -24,6 +24,7 @@ do
         echo
         echo "usage: "
         echo "   $0 -p /you_path/to_the/demo"
+        echo "   (The Borg Backup PREFIX will be the basename of the directory, so \"demo\" in the above example)"
         echo
         exit 2
     ;;
