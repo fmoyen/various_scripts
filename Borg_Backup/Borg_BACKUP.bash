@@ -1,6 +1,7 @@
 #!/bin/bash
 
 BORG_REPO=/DemoBackup/BORG_BACKUP_REPO
+DEFAULT_EXCLUDE_FILE="BORG_exclude_file.txt"
 
 if [ `whoami` != "root" ]
 then
@@ -12,19 +13,44 @@ then
 fi
 
 option_p=0
+option_e=0
+BORG_OPTION=""
 
-while getopts ":p:h" option
+while getopts ":p:he:" option
 do
   case $option in
     p  )
-      DEMOPATH=$OPTARG
+      DEMO_PATH=$OPTARG
       option_p=1
+    ;;
+    e  )
+      EXCLUDE_FILE=$OPTARG
+      if [ -f $EXCLUDE_FILE ]
+      then
+        BORG_OPTION="$BORG_OPTION --exclude-from $EXCLUDE_FILE"
+        option_e=1
+      else
+        echo 
+        echo "file $EXCLUDE_FILE does not exist..."
+        echo
+        echo "Exiting"
+        exit 5
+      fi
     ;;
     h  )
         echo
-        echo "usage: "
-        echo "   $0 -p /you_path/to_the/demo"
-        echo "   (The Borg Backup PREFIX will be the basename of the directory, so \"demo\" in the above example)"
+        echo "Usage: "
+        echo "------ "
+        echo "   $0 -p /path/to_the/demo [-e /path/to_your/exclude_file]"
+        echo
+        echo "      -p (Mandatory) : provide the path to your demo (the directory you want to backup)"
+        echo
+        echo "      -e (Optional)  : provide the path to the text file containing the list of paths & files to exclude from your backup." 
+        echo "      if -e option is not specified, it will use the following exclude file (if existing) : /path/to_the/demo/$DEFAULT_EXCLUDE_FILE"
+        echo
+        echo "Notes: "
+        echo "------ "
+        echo "   The Borg Backup PREFIX will be the basename of the directory, so \"demo\" in the above example"
         echo
         exit 2
     ;;
@@ -40,17 +66,32 @@ then
   exit 3
 fi
 
-if [ ! -d $DEMOPATH ]
+if [ $option_e == 0 ]
+then
+  # No exclude file provided, using the default one if existing
+  if [ -f $DEMO_PATH/$DEFAULT_EXCLUDE_FILE ]
+  then
+    echo "Using default option \"--exclude-from $DEMO_PATH/$DEFAULT_EXCLUDE_FILE\""
+    BORG_OPTION="$BORG_OPTION --exclude-from $DEMO_PATH/$DEFAULT_EXCLUDE_FILE"
+  fi
+fi
+
+if [ ! -d $DEMO_PATH ]
 then 
   echo
-  echo "$DEMOPATH directory does not exist"
+  echo "$DEMO_PATH directory does not exist"
   echo 
   echo "Exiting"
   exit 4
 fi
 
 TODAY=$(date +%Y-%m-%d)
-PREFIXE=`basename $DEMOPATH`
+PREFIXE=`basename $DEMO_PATH`
 
-time borg create --verbose --stats --progress -x --compression zlib $BORG_REPO::$PREFIXE-$TODAY $DEMOPATH
+echo 
+echo "Borg Command:"
+echo "-------------"
+echo "borg create --verbose --stats --progress -x --compression zlib $BORG_OPTION $BORG_REPO::$PREFIXE-$TODAY $DEMO_PATH"
+echo
+borg create --verbose --stats --progress -x --compression zlib $BORG_OPTION $BORG_REPO::$PREFIXE-$TODAY $DEMO_PATH
 #borg prune --verbose --list $BORG_REPO  --prefix='$PREFIXE-' --keep-daily=7 --keep-weekly=4 --keep-monthly=6
