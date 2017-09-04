@@ -34,9 +34,9 @@ do
     ping -c 1 $VMIP > /dev/null 2>&1
     PingResult=`echo $?`
   done
-  
-  echo "##########################################################"
-  echo "-> Please wait few minutes for the openstack containers to start on the Controller"
-  echo
-  echo "Bye !"
 done
+
+echo "##########################################################"
+echo "-> Please wait few minutes for the openstack containers to start on the Controller"
+echo
+echo "Bye !"
