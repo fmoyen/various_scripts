@@ -48,6 +48,12 @@ do
         echo "      -e (Optional)  : provide the path to the text file containing the list of paths & files to exclude from your backup." 
         echo "      if -e option is not specified, it will use the following exclude file (if existing) : /path/to_the/demo/$DEFAULT_EXCLUDE_FILE"
         echo
+        echo "Exclude file example:"
+        echo "---------------------"
+        echo "*/directory_you_dont_want_to_backup"
+        echo "*/dummy_file.doc"
+        echo "*/test/personalfile.*"
+        echo
         echo "Notes: "
         echo "------ "
         echo "   The Borg Backup PREFIX will be the basename of the directory, so \"demo\" in the above example"
