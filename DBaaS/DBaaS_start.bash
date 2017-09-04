@@ -41,5 +41,6 @@ done
 echo;echo
 echo "##########################################################"
 echo "-> Please wait few minutes for the openstack containers to start on the Controller"
+echo "   (use \"watch -d -n1 lxc-ls -f\" for example while connected using root on the controller)"
 echo
 echo "Bye !"
