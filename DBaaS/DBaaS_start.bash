@@ -19,6 +19,7 @@ esac
 for VM in DBaaSceph33703 DBaaSceph33704 DBaaSceph33705 DBaaSswift33706 DBaaSswift33707 DBaaSswift33708 DBaaScompute33710 DBaaScontroller33702
 do
 
+  echo
   echo "##########################################################"
   echo "-> Starting $VM"
   VMIP="10.3.37.`echo $VM | grep -o '..$'`"
@@ -36,6 +37,7 @@ do
   done
 done
 
+echo
 echo "##########################################################"
 echo "-> Please wait few minutes for the openstack containers to start on the Controller"
 echo
