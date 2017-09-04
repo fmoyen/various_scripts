@@ -22,7 +22,8 @@ do
   echo
   echo "##########################################################"
   echo "-> Starting $VM"
-  VMIP="10.3.37.`echo $VM | grep -o '..$'`"
+  LastDigitIP=`echo $VM | grep -o '..$'`
+  VMIP="10.3.37.`echo $((10#$LastDigitIP))`"
 
   ssh root@$KVM virsh start $VM
 
@@ -37,7 +38,7 @@ do
   done
 done
 
-echo
+echo;echo
 echo "##########################################################"
 echo "-> Please wait few minutes for the openstack containers to start on the Controller"
 echo
