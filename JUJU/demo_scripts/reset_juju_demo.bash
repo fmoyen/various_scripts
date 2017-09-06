@@ -15,6 +15,17 @@
 
 
 SnapshotName="DEMO16.04.2"
+ListVMsDisk="\
+/VMDisks/jujudemo/7ec45cf8-2ee7-412c-b2bb-a2308c0815e7-0.img \
+/VMDisks/jujudemo/d3c3a8e3-750d-4f67-afac-5ba2f72b9af1-0.img \
+/VMDisks/jujudemo/8514629e-384c-476b-89a4-e7b53c2339d8-0.img \
+/VMDisks/jujudemo/ebc033cb-8634-4a2a-ae29-635244622d59-0.img \
+/VMDisks/jujudemo/1dda4b79-f1f9-44a0-8d55-d431d1b0d8bb-0.img \
+/VMDisks/jujudemo/6c0cf58b-dd88-43ee-b91d-453df0a9b379-0.img \
+/VMDisks/jujudemo/04ab1cc5-7ab2-440f-bacc-7e0cfd9deece-0.img \
+/VMDisks/jujudemo/9698d649-a5ee-4168-b743-ab90df570bda-0.img \
+/VMDisks/jujudemo/334b401b-bf93-4800-9ba1-b3dba4aa84e6-0.img \
+/VMDisks/jujudemo/255a8e6e-8b42-4670-8ae0-3bb105689787-0.img"
 
 option_n=0
 while getopts "nh" option
@@ -65,6 +76,12 @@ done
 echo "Reverting the jdmaas/jdjuju Virtual Machines to the snapshot $SnapshotName..."
 virsh snapshot-revert jdmaas --snapshotname $SnapshotName
 virsh snapshot-revert jdjuju --snapshotname $SnapshotName
+
+echo "Recreating the jdvm01 -> jdvm10 disks..."
+for i in $ListVMsDisk
+do
+  qemu-img create -f qcow2 $i 50G
+done
 
 if [ $option_n == 0 ]
 then
