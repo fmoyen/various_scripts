@@ -24,6 +24,10 @@ do
   echo "-> Starting $VM"
   LastDigitIP=`echo $VM | grep -o '..$'`
   VMIP="10.3.37.`echo $((10#$LastDigitIP))`"
+  if [ $VM == "DBaaScontroller33702" ]
+  then
+    ControllerIP=$VMIP
+  fi
 
   ssh root@$KVM virsh start $VM
 
@@ -41,6 +45,11 @@ done
 echo;echo
 echo "##########################################################"
 echo "-> Please wait few minutes for the openstack containers to start on the Controller"
-echo "   (use \"watch -d -n1 lxc-ls -f\" for example while connected using root on the controller)"
+echo
+echo "Press ENTER to use \"watch -d -n1 lxc-ls -f\" on the controller and check when every container is up"
+echo -e "or CTRL-C to exit : \c"
+read a
+
+ssh -t ibmadmin@$ControllerIP sudo watch -d -n1 lxc-ls -f
 echo
 echo "Bye !"
