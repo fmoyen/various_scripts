@@ -1,6 +1,7 @@
 #!/bin/bash
 
-KVM=abaca
+#KVM=abaca
+KVM=10.3.44.200
 
 echo 
 echo -e "Are you sure you want to START the DBaaS demo (Y/[N]) ?: \c"
