@@ -1,6 +1,7 @@
 #!/bin/bash
 
-BORG_REPO=/DemoBackup/BORG_BACKUP_REPO
+#BORG_REPO=/DemoBackup/BORG_BACKUP_REPO
+BORG_REPO=borg@10.7.99.25:./repos/DemoBackup
 DEFAULT_EXCLUDE_FILE="BORG_exclude_file.txt"
 
 if [ `whoami` != "root" ]
