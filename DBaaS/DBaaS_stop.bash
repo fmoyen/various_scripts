@@ -26,7 +26,7 @@ do
   LastDigitIP=`echo $VM | grep -o '..$'`
   VMIP="10.3.37.`echo $((10#$LastDigitIP))`"
 
-  ssh -t ibmadmin@$VMIP sudo halt
+  ssh root@$VMIP halt
 
   echo -e "   Waiting for $VM to stop (virsh list)\c"
   ssh root@$KVM virsh list | grep $VM > /dev/null 2>&1
@@ -42,5 +42,5 @@ done
 echo;echo
 echo "##########################################################"
 echo
-ssh root@$KVM virsh list -all | grep -i dbaas
+ssh root@$KVM virsh list --all | grep -i dbaas
 echo "Bye !"
