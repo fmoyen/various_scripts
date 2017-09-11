@@ -51,6 +51,6 @@ echo "Press ENTER to use \"watch -d -n1 lxc-ls -f\" on the controller and check 
 echo -e "or CTRL-C to exit : \c"
 read a
 
-ssh root@$ControllerIP watch -d -n1 lxc-ls -f
+ssh -t root@$ControllerIP watch -d -n1 lxc-ls -f
 echo
 echo "Bye !"
