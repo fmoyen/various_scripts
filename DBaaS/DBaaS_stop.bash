@@ -17,7 +17,7 @@ case $a in
   ;;
 esac
 
-for VM in DBaaScontroller33702 DBaaScompute33710 DBaaSswift33708 DBaaSswift33707 DBaaSswift33706 DBaaSceph33705 DBaaSceph33704 DBaaSceph33703
+for VM in DBaaScontroller33702 DBaaSclient33720 DBaaScompute33710 DBaaSswift33708 DBaaSswift33707 DBaaSswift33706 DBaaSceph33705 DBaaSceph33704 DBaaSceph33703
 do
 
   echo
