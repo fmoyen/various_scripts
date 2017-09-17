@@ -1,0 +1,348 @@
+#/bin/bash
+
+#####################################################################################
+# Check if root
+#
+
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script as root"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
+fi
+
+#####################################################################################
+# Parameters
+#
+BackupScriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+HomeFolderToBackup=/home/fabrice
+
+LuksFileDir="/run/media/fabrice/Fabrice 1To Passport/Backup"
+CryptedLuksFile="$LuksFileDir/BorgBackup.crypt"
+
+BackupMountPoint=/home/backup/BorgBackup
+HomeBorgPrefix=Home
+RootBorgPrefix=Root
+
+ExcludeDirs=$BackupScriptDir/BorgBackup.Exclude
+
+LuksDev=luks-BorgBackup
+
+BorgOption=""
+
+#####################################################################################
+# FUNCTIONS
+#
+
+function OpenLuksVolume
+{
+  crypt_file=$1
+  luks_volume=$2
+
+  echo "-----------------------------------------------"
+  echo "Opening the LUKS crypted volume"
+  cryptsetup luksOpen "$crypt_file" $luks_volume
+  echo "Done"
+  echo
+}
+
+function CloseLuksVolume
+{
+  luks_volume=$1
+
+  echo "-----------------------------------------------"
+  echo "Closing the LUKS crypted volume"
+  cryptsetup luksClose /dev/mapper/$luks_volume
+  echo "Done"
+  echo
+}
+
+
+function MountVolume
+{
+  luks_volume=$1
+  mount_path=$2
+
+  echo "-----------------------------------------------"
+  echo "Creating the MountPoint $mount_path if needed"
+  mkdir -p $mount_path
+  ls -lad $mount_path
+  echo "Done"
+  echo
+
+  echo "Mounting the destination volume"
+  mount /dev/mapper/$luks_volume $mount_path
+  df -h $mount_path
+  IsMounted=`df | grep $mount_path | wc -l`
+  if [ $IsMounted -ne 1 ]
+  then
+    echo "$mount_path is not mounted / available"
+    echo "Please Check why"
+    echo "Exiting ..."
+    echo
+    exit 1
+  fi
+
+  echo "Done"
+}
+
+function UmountVolume
+{
+  mount_path=$1
+
+  echo "-----------------------------------------------"
+  echo "UNmounting the destination volume"
+  umount $mount_path
+
+  IsMounted=`df  | grep $mount_path | wc -l`
+  if [ $IsMounted -eq 1 ]
+  then
+    echo "$mount_path is STILL mounted"
+    echo "Please Check why"
+    echo "Exiting ..."
+    echo
+    exit 1
+  fi
+  echo "Done"
+}
+
+function CheckMountVolume
+{
+  luks_volume=$1
+  mount_path=$2
+
+  IsMounted=`df | grep "$mount_path" | grep $luks_volume | wc -l`
+  if [ $IsMounted -ne 1 ]
+  then
+    echo "$luks_volume is not mounted onto $mount_path !!"
+    return 1
+  else
+    return 0
+  fi
+
+  echo "Done"
+}
+
+
+function ListBorgBackups
+{
+  # Assuming the Borg Backup repository is accessible (mounted)
+  borg_repo=$1
+
+  echo "-----------------------------------------------"
+  echo "Listing the available Borg backups:"
+  echo
+  echo "#############################################################"
+  borg list $borg_repo
+  echo "#############################################################"
+
+  echo
+}
+
+
+#####################################################################################
+# MAIN
+#
+
+Choice=1
+
+while [ $Choice -eq 1 ]
+do
+  clear
+  df -h $BackupMountPoint
+  echo
+  echo "BACKUP TOOL for LINUX LAPTOP"
+  echo "----------------------------"
+  echo
+  echo "mount)  mount the crypt volume in order to restore some files"
+  echo "list)   list the available backups"
+  echo "home)   do the $HomeFolderToBackup borg backup"
+  echo "root)   do the / (root) borg backup"
+  echo "umount) UNmount the crypt volume in order to unplug the disk"
+  echo
+  echo "reset)  reset the Crypted volume $CryptedLuksFile (DANGEROUS!!)"
+  echo "exit)   Exit this Backup Tool"
+  echo
+  echo -e "? --> \c"
+
+  read WhatToDo
+  echo
+
+  case $WhatToDo in
+
+    #------------------------------------------------------------------------------------
+    # MOUNT Requested
+
+    mount)
+
+      echo "Mount requested... Mounting the crypted volume"
+
+      OpenLuksVolume "$CryptedLuksFile" $LuksDev
+      MountVolume $LuksDev "$BackupMountPoint"
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # LISTING Requested
+
+    list)
+      CheckMountVolume "$BackupMountPoint" $LuksDev
+      if [ `echo $?` -ne 0 ]
+      then
+        echo "Could be a good idea to first mount the Crypted Volume !"
+      else
+       ListBorgBackups $BackupMountPoint/BorgRepo
+      fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # HOME BORG BACKUP Requested
+
+    home)
+      CheckMountVolume "$BackupMountPoint" $LuksDev
+      if [ `echo $?` -ne 0 ]
+      then
+        echo "Could be a good idea to first mount the Crypted Volume !"
+      else
+        Today=$(date +%Y-%m-%d-%H%M%S)
+
+        # Doing the backup
+
+        echo "-----------------------------------------------"
+        echo "Doing the $HomeFolderToBackup... It's going to take a while !!"
+        echo "Hit Enter to START or CTRL-C to ABORT !!!"
+        read a
+
+        borg create --verbose --stats --progress --compression zlib --exclude-from $ExcludeDirs $BackupMountPoint/BorgRepo::$HomeBorgPrefix-$Today $HomeFolderToBackup
+
+        echo
+
+        echo "Backup is finished"
+        echo
+      fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # ROOT BORG BACKUP Requested
+
+    root)
+      CheckMountVolume "$BackupMountPoint" $LuksDev
+      if [ `echo $?` -ne 0 ]
+      then
+        echo "Could be a good idea to first mount the Crypted Volume !"
+      else
+        Today=$(date +%Y-%m-%d-%H%M%S)
+
+        # Doing the backup
+
+        echo "-----------------------------------------------"
+        echo "Doing the / (root)... It's going to take a while !!"
+        echo "Hit Enter to START or CTRL-C to ABORT !!!"
+        read a
+
+        borg create --verbose --stats --progress --one-file-system --compression zlib --exclude-from $ExcludeDirs $BackupMountPoint/BorgRepo::$RootBorgPrefix-$Today /
+
+        echo
+
+        echo "Backup is finished"
+        echo
+      fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # UNMOUNT Requested
+
+    umount)
+
+      echo "UNmount requested... UNmounting the crypted volume"
+
+      UmountVolume "$BackupMountPoint"
+      CloseLuksVolume $LuksDev
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # RESET Requested
+
+
+    reset)
+      echo "RESET requested... Reseting the crypted volume $CryptedLuksFile"
+      echo
+      echo "This will delete all your backup volume..."
+      echo -e "ARE YOU SURE ?? (YES in uppercase please) : \c"
+      read a
+
+      if [ "X$a" != "XYES" ]
+      then
+        echo
+        echo "Not sure ... OK exiting !"
+        echo
+        echo "Bye"
+        echo
+        exit 0
+      fi
+
+      UmountVolume "$BackupMountPoint"
+      CloseLuksVolume $LuksDev
+
+
+      # This dd command needs to be done the very first time to create the $CryptedLuksFile crypt file
+      #echo "-----------------------------------------------"
+      #echo "Creating the empty file for the crypted volume using dd... It's going to take a while !!"
+      #dd if=/dev/zero of="$CryptedLuksFile" bs=1M count=153600
+      #echo "done"
+      #echo
+
+      echo "-----------------------------------------------"
+      echo "luksFormating the crypted volume"
+      cryptsetup luksFormat "$CryptedLuksFile"
+      echo "Done"
+      echo
+
+      OpenLuksVolume "$CryptedLuksFile" $LuksDev
+
+      echo "-----------------------------------------------"
+      echo "Creating the ext4 filesystem for the crypted volume"
+      mkfs.ext4 /dev/mapper/$LuksDev
+      echo "Done"
+      echo
+
+      MountVolume $LuksDev "$BackupMountPoint"
+
+      echo "-----------------------------------------------"
+      echo "Initializing the Borg Repository"
+      mkdir $BackupMountPoint/BorgRepo
+      borg init $BackupMountPoint/BorgRepo
+      echo "Done"
+      echo
+      echo;echo "Hit ENTER"
+      read a
+      ;;
+
+    #------------------------------------------------------------------------------------
+    # EXIT Requested
+
+    exit)
+     echo "Exiting as requested"
+     UmountVolume "$BackupMountPoint"
+     CloseLuksVolume $LuksDev
+
+     echo
+     echo "The USB disk may now be unmounted and unplugged"
+     echo
+     echo "Bye !!"
+     echo
+     Choice=0
+     ;;
+  esac
+done

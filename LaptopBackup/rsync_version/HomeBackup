@@ -1,0 +1,328 @@
+#/bin/bash
+
+#####################################################################################
+# Check if root
+#
+
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script as root"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
+fi
+
+#####################################################################################
+# Parameters
+#
+DirHomeBackup="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+FolderToBackup=/home/fabrice
+   SRC=$FolderToBackup
+DirWhereToBackup="/run/media/fabrice/Fabrice 1To Passport/Backup"
+FileWhereToBackup="$DirWhereToBackup/BackupHome.crypt"
+   DEST=$FileWhereToBackup
+
+FsUnderSRC=`df --output=target | grep -i $SRC`
+
+MountPoint=/home/backup/BackupHome
+LogRsync=/home/backup/BackupHome_Rsync_`date +%d%b%Y`.log
+
+#ExcludeDirs="Downloads .cxoffice .cache"
+ExcludeDirs=`cat $DirHomeBackup/HomeBackup.Exclude_Dir`
+Excludeoption=""
+for i in $ExcludeDirs
+do
+ExcludeOption="$ExcludeOption --exclude $i "
+done
+
+LuksDev=luks-BackupHome
+
+#####################################################################################
+# Menu
+#
+
+Choice=1
+
+while [ $Choice -eq 1 ]
+do
+  clear
+  echo
+  echo "BACKUP TOOL for LINUX LAPTOP"
+  echo "----------------------------"
+  echo
+  echo "full)  Start a full and complete backup"
+  echo "incr)  Start an incremental backup"
+  echo "mount) just mount the crypt volume in order to restore some files"
+  echo "exit)  Exits this Backup Tool"
+  echo 
+  echo -e "? --> \c"
+
+  read WhatToDo
+
+  case $WhatToDo in
+
+    full)
+      Choice=0
+      ;;
+    incr)
+      Choice=0
+      ;;
+    mount)
+      Choice=0
+      ;;
+    exit)
+     echo "Exiting as requested"
+     echo "Bye !!"
+     echo
+     exit 0
+     ;;
+  esac
+done
+
+
+#####################################################################################
+# Main
+#
+
+echo
+
+#------------------------------------------------------------------------------------
+# MOUNT Requested
+
+if [ $WhatToDo = "mount" ]
+then
+
+  echo "Mounted requested... Mounting the crypted volume"
+
+  echo "Creating the mountpoint $MountPoint if needed"
+  mkdir -p $MountPoint
+  ls -lad $MountPoint
+  echo "Done"
+  echo
+
+  echo "Opening the LUKS crypted volume"
+  cryptsetup luksOpen "$DEST" $LuksDev
+  echo "Done"
+  echo
+
+
+  echo "Mounting the destination volume"
+  mount /dev/mapper/$LuksDev $MountPoint
+
+  IsMounted=`df | grep $MountPoint | wc -l`
+  if [ $IsMounted -ne 1 ]
+  then
+    echo "$MountPoint is not mounted / available"
+    echo "Please Check why"
+    echo "Exiting ..."
+    echo
+    exit 1
+  fi
+
+  df -h $MountPoint
+ 
+  echo
+  echo "Done"
+  echo
+  echo "Please remember to unmount and close the luks crypted volume using the commands"
+  echo "   sudo umount $MountPoint"
+  echo "   sudo cryptsetup luksClose /dev/mapper/$LuksDev"
+  echo
+  echo "Bye !!"
+  echo
+  exit 0
+fi
+
+#------------------------------------------------------------------------------------
+# FULL BACKUP 
+
+if [ $WhatToDo = "full" ]
+then
+  
+  echo "FULL BACKUP requested... Reseting the crypted volume $DEST"
+  echo 
+  echo "This will delete all your backup volume..."
+  echo -e "ARE YOU SURE ?? (YES in uppercase please) : \c"
+  read a
+
+if [ "X$a" != "XYES" ]
+then
+  echo
+  echo "Not sure ... OK exiting !"
+  echo 
+  echo "Bye"
+  echo
+  exit 0
+fi 
+
+#  echo "Creating the empty file for the crypted volume using dd... It's going to take a while !!"
+#  dd if=/dev/zero of="$DEST" bs=1M count=153600
+#  echo "That's done !!"
+#  echo
+
+  echo "luksFormating the crypted volume"
+  cryptsetup luksFormat "$DEST"
+  echo "Done"
+  echo
+
+  echo "Creating the mountpoint $MountPoint if needed"
+  mkdir -p $MountPoint
+  ls -lad $MountPoint
+  echo "Done"
+  echo
+
+  echo "Opening the LUKS crypted volume"
+  cryptsetup luksOpen "$DEST" $LuksDev
+  echo "Done"
+  echo
+
+  echo "Creating the ext4 filesystem for the crypted volume"
+  mkfs.ext4 /dev/mapper/$LuksDev
+  echo "Done"
+  echo
+fi
+
+# Dating the entry in the logfile
+
+echo >> $LogRsync
+echo "####################################################################################" >> $LogRsync
+echo "####################################################################################" >> $LogRsync
+echo "$WhatToDo - $WhatToDo - $WhatToDo - $WhatToDo - $WhatToDo - $WhatToDo - $WhatToDo - $WhatToDo - $WhatToDo" >> $LogRsync
+echo "####################################################################################" >> $LogRsync
+echo >> $LogRsync
+date >> $LogRsync
+echo >> $LogRsync
+
+# Mounting the Destination volume
+
+if [ $WhatToDo = "incr" ]
+then
+  echo "Opening the LUKS crypted volume"
+  cryptsetup luksOpen "$DEST" $LuksDev
+  echo "Done"
+  echo
+fi
+
+echo "Mounting the destination volume"
+mount /dev/mapper/$LuksDev $MountPoint
+
+IsMounted=`df | grep $MountPoint | wc -l` 
+if [ $IsMounted -ne 1 ]
+then
+  echo "$MountPoint is not mounted / available"
+  echo "Please Check why"
+  echo "Exiting ..."
+  echo
+  exit 1
+fi 
+
+df -h $MountPoint
+
+chown fabrice:fabrice $MountPoint
+echo "Done"
+echo
+
+# Doing the backup
+
+echo "Doing the Backup... It's going to take a while !!"
+echo "Hit Enter to START or CTRL-C to ABORT !!!"
+read a
+rsync -av $ExcludeOption --delete $SRC $MountPoint 1>>$LogRsync 2>>$LogRsync &
+
+# Waiting for the backup to end
+sleep 5
+
+while [ `ps -ef | grep -i rsync | grep -v grep | wc -l` -ne 0 ]
+do
+  clear
+  echo "Updated every 10s"
+  echo
+  echo "SOURCE"
+  df -h --total $FsUnderSRC
+  echo
+  echo "Directories excluded from backup:"
+  for i in $ExcludeDirs
+  do
+    du -sh $SRC/$i
+  done 
+  echo
+  echo "TARGET"
+  df -h $MountPoint
+  echo
+  echo "Last 8 lines of the Log File $LogRsync:"
+  tail -8 $LogRsync
+  sleep 10
+done
+
+clear
+echo;echo
+
+  echo "SOURCE"
+  df -h --total $FsUnderSRC
+  echo
+  echo "Directories excluded from backup:"
+  for i in $ExcludeDirs
+  do
+    du -sh $SRC/$i
+  done 
+  echo
+  echo "TARGET"
+  df -h $MountPoint
+  echo
+  echo "Last 8 lines of the Log File $LogRsync:"
+  tail -8 $LogRsync
+
+echo
+echo "Backup is finished"
+echo "Please check the log file $LogRsync to validate everything is fine"
+echo
+
+# Unmount and closing the Backup volume
+
+echo "Unmounting the Backup volume"
+umount $MountPoint
+IsMounted=`df | grep $MountPoint | wc -l` 
+if [ $IsMounted -ne 0 ]
+then
+  echo "$MountPoint is not UNmounted"
+  echo "Please Check why and type enter to retry"
+  read a
+  df $MountPoint 1>/dev/null 2>&1
+  if [ $? -eq 0 ]
+  then
+    echo "$MountPoint is still not UNmounted"
+    echo "Nevertheless, the backup should be fine \(Remember to check the log\)"
+    echo "Please correct the problem and then close the luks crypted volume with command:"
+    echo "cryptsetup luksClose /dev/mapper/$LuksDev"
+    echo
+    echo "Exiting"
+    echo
+  exit 2
+  fi
+fi
+echo "Done"
+echo
+
+# Closing the luks Device
+#
+echo "Closing the LUKS device"
+cryptsetup luksClose /dev/mapper/$LuksDev
+echo "Done"
+echo
+
+echo "Copying the Log File on the USB disk"
+cp $LogRsync "$DirWhereToBackup"
+ls -la "$DirWhereToBackup" | grep .log
+echo "Done"
+
+# The END
+
+echo
+echo "The USB disk may now be unmounted"
+echo "The backup is done"
+echo
+echo "Please remember to check the log file $LogRsync to validate everything is fine"
+echo
+echo "Bye !!"
+echo
