@@ -20,6 +20,7 @@ BackupScriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HomeFolderToBackup=/home/fabrice
 
 LuksFileDir="/run/media/fabrice/Fabrice 1To Passport/Backup"
+LuksFileDir="/run/media/fabrice/Fab500GB/Backup"
 CryptedLuksFile="$LuksFileDir/BorgBackup.crypt"
 
 BackupMountPoint=/home/backup/BorgBackup
@@ -156,7 +157,7 @@ do
   echo "BACKUP TOOL for LINUX LAPTOP"
   echo "----------------------------"
   echo
-  echo "mount)  mount the crypt volume in order to restore some files"
+  echo "mount)  mount the crypt volume in order to restore/backup some files"
   echo "list)   list the available backups"
   echo "home)   do the $HomeFolderToBackup borg backup"
   echo "root)   do the / (root) borg backup"
@@ -296,12 +297,18 @@ do
       CloseLuksVolume $LuksDev
 
 
+      
+      echo "-----------------------------------------------"
+      echo "Creating the MountPoint $LuksFileDir if needed"
+      mkdir -p $LuksFileDir
+      ls -lad $LuksFileDir
+
       # This dd command needs to be done the very first time to create the $CryptedLuksFile crypt file
-      #echo "-----------------------------------------------"
-      #echo "Creating the empty file for the crypted volume using dd... It's going to take a while !!"
-      #dd if=/dev/zero of="$CryptedLuksFile" bs=1M count=153600
-      #echo "done"
-      #echo
+      echo "-----------------------------------------------"
+      echo "Creating the empty file for the crypted volume using dd... It's going to take a while !!"
+      dd if=/dev/zero of="$CryptedLuksFile" bs=1M count=153600
+      echo "done"
+      echo
 
       echo "-----------------------------------------------"
       echo "luksFormating the crypted volume"
@@ -322,7 +329,7 @@ do
       echo "-----------------------------------------------"
       echo "Initializing the Borg Repository"
       mkdir $BackupMountPoint/BorgRepo
-      borg init $BackupMountPoint/BorgRepo
+      borg init --encryption=none $BackupMountPoint/BorgRepo
       echo "Done"
       echo
       echo;echo "Hit ENTER"
