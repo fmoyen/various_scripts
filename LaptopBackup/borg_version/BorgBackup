@@ -7,7 +7,7 @@
 if [ `whoami` != "root" ]
 then
   echo
-  echo "You're not root. You need to execute this script as root"
+  echo "You're not root. You need to execute this script with root privileges"
   echo "Think of sudo command..."
   echo "Exiting"
   exit 0
@@ -19,8 +19,17 @@ fi
 BackupScriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HomeFolderToBackup=/home/fabrice
 
-LuksFileDir="/run/media/fabrice/Fabrice 1To Passport/Backup"
+#LuksFileDir="/run/media/fabrice/Fabrice 1To Passport/Backup"
 LuksFileDir="/run/media/fabrice/Fab500GB/Backup"
+echo
+echo "Where is your BorgBackup.crypt file (LUKS crypted Borg backup directory)"
+echo "[$LuksFileDir] ? :"
+read a
+if [ "X$a" != "X" ]
+then
+   LuksFileDir="$a"
+fi
+
 CryptedLuksFile="$LuksFileDir/BorgBackup.crypt"
 
 BackupMountPoint=/home/backup/BorgBackup
@@ -152,7 +161,15 @@ Choice=1
 while [ $Choice -eq 1 ]
 do
   clear
-  df -h $BackupMountPoint
+
+  isMounted=`df $BackupMountPoint | grep -c $BackupMountPoint`
+  if [ $isMounted -eq 1 ]
+  then
+    df -h $BackupMountPoint
+  else
+    echo "$BackupMountPoint NOT MOUNTED"
+  fi
+
   echo
   echo "BACKUP TOOL for LINUX LAPTOP"
   echo "----------------------------"
