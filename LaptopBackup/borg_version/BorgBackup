@@ -19,8 +19,8 @@ fi
 BackupScriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HomeFolderToBackup=/home/fabrice
 
-#LuksFileDir="/run/media/fabrice/Fabrice 1To Passport/Backup"
-LuksFileDir="/run/media/fabrice/Fab500GB/Backup"
+#LuksFileDir="/run/media/fabrice/Fab500GB/Backup"
+LuksFileDir="/run/media/fabrice/FabDisk1TB/Backup"
 echo
 echo "Where is your BorgBackup.crypt file (LUKS crypted Borg backup directory)"
 echo "[$LuksFileDir] ? :"
