@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Accounts="fabrice root rpc"
+Accounts="fabrice root"
 Today=`date +%Y-%m-%d`
 
 #####################################################################################
