@@ -22,8 +22,13 @@ fi
 echo
 for i in $Accounts
 do
+   echo "######################################"
    echo "$i account"
    echo "----------------------"
+   echo "Before:"
+   chage --list $i
+   echo "----------------------"
+   echo "Now:"
    chage -d $Today $i
    chage -W 15 $i
    chage -M 90 $i
