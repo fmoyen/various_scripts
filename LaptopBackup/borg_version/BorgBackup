@@ -151,6 +151,23 @@ function ListBorgBackups
   echo
 }
 
+function DetailBorgBackups
+{
+  # Assuming the Borg Backup repository is accessible (mounted)
+  borg_repo=$1
+  backup=$2
+
+  echo "-----------------------------------------------"
+  echo "Listing the Borg backup: $2"
+  echo
+  echo "#############################################################"
+  borg list ${borg_repo}::$backup
+  echo "#############################################################"
+
+  echo
+}
+
+
 
 #####################################################################################
 # MAIN
@@ -175,7 +192,10 @@ do
   echo "----------------------------"
   echo
   echo "mount)  mount the crypt volume in order to restore/backup some files"
+  echo
   echo "list)   list the available backups"
+  echo "detail)   list the files included inside a backup"
+  echo
   echo "home)   do the $HomeFolderToBackup borg backup"
   echo "root)   do the / (root) borg backup"
   echo "umount) UNmount the crypt volume in order to unplug the disk"
@@ -214,6 +234,21 @@ do
       else
        ListBorgBackups $BackupMountPoint/BorgRepo
       fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+   #------------------------------------------------------------------------------------
+    # DETAIL Requested
+
+    detail)
+      ListBorgBackups $BackupMountPoint/BorgRepo
+      echo
+      echo "From which backup do you want to see the detailed files list ?: "
+      read detail
+      echo
+      DetailBorgBackups $BackupMountPoint/BorgRepo $detail | more
+
       echo;echo "Hit ENTER"
       read a
     ;;
