@@ -200,6 +200,8 @@ do
   echo "root)   do the / (root) borg backup"
   echo "umount) UNmount the crypt volume in order to unplug the disk"
   echo
+  echo "extract) extract (restore) a backup"
+  echo
   echo "reset)  reset the Crypted volume $CryptedLuksFile (DANGEROUS!!)"
   echo "exit)   Exit this Backup Tool"
   echo
@@ -320,6 +322,25 @@ do
 
       UmountVolume "$BackupMountPoint"
       CloseLuksVolume $LuksDev
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # EXTRACT Requested
+
+    extract)
+      ListBorgBackups $BackupMountPoint/BorgRepo
+      echo
+      echo "Which backup do you want to extract ?: "
+      read detail
+      echo
+      echo "Hereunder a proposal for extracting the backup:"
+      echo "-----------------------------------------------"
+      echo "cd / ; borg extract --list $BackupMountPoint/BorgRepo::$detail"
+      echo "(please verify everything is fine before using this command !)"
+
+
       echo;echo "Hit ENTER"
       read a
     ;;
