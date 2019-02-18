@@ -207,7 +207,10 @@ do
   echo "borgmount) borg mount the volumes under /borgmnt"
   echo "borgumount) borg UNmount the volumes under /borgmnt"
   echo
-  echo "extract) extract (restore) a backup"
+  echo "homeprune) borg prune (cleaning obsolete backups) of $HomeFolderToBackup"
+  echo "rootprune) borg prune (cleaning obsolete backups) of / (root)"
+  echo
+  echo "extract) get extract (restore) command of a backup"
   echo
   echo "umount) UNmount the crypt volume in order to unplug the disk"
   echo "reset)  reset the Crypted volume $CryptedLuksFile (DANGEROUS!!)"
@@ -353,6 +356,74 @@ do
     borgumount)
       echo "Borg UNmount requested... UNmounting /borgmnt"
       umount /borgmnt
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # Home Borg pruning Requested
+    homeprune)
+      keepDaily=7
+      keepWeekly=4
+      keepMonthly=6
+      echo "Describe the requested options for Home borg pruning:"
+      echo -e "    --keep-daily [$keepDaily]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
+      echo -e "    --keep-weekly [$keepWeekly]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepWeekly ]; then keepWeekly=$answer; fi
+      echo -e "    --keep-monthly [$keepMonthly]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepMonthly ]; then keepMonthly=$answer; fi
+      
+      echo
+      echo "Borg Pruning Simulation:"
+      echo "borg prune -v --list --dry-run --prefix='Home-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
+      borg prune -v --list --dry-run --prefix='Home-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo
+
+
+      prune=N
+      echo;echo -e "Do you want to prune [N]/Y ? : \c"
+      read prune
+      if [ X$prune = "XY" ]
+      then 
+         borg prune -v --list --prefix='Home-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo
+      fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # Root Borg pruning Requested
+    rootprune)
+      keepDaily=7
+      keepWeekly=4
+      keepMonthly=6
+      echo "Describe the requested options for Home borg pruning:"
+      echo -e "    --keep-daily [$keepDaily]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
+      echo -e "    --keep-weekly [$keepWeekly]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepWeekly ]; then keepWeekly=$answer; fi
+      echo -e "    --keep-monthly [$keepMonthly]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepMonthly ]; then keepMonthly=$answer; fi
+    
+      echo
+      echo "Borg Pruning Simulation:"
+      echo "borg prune -v --list --dry-run --prefix='Root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
+      borg prune -v --list --dry-run --prefix='Root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo
+
+
+      prune=N
+      echo;echo -e "Do you want to prune [N]/Y ? : \c"
+      read prune
+      if [ X$prune = "XY" ]
+      then
+         borg prune -v --list --prefix='Root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo
+      fi
       echo;echo "Hit ENTER"
       read a
     ;;
