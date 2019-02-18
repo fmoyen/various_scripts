@@ -1,6 +1,11 @@
 #/bin/bash
 
 #####################################################################################
+# Date: 2019/02/15
+# Author: Fabrice MOYEN
+# Objective: Doing and dealing with Borg backup of my laptop.
+
+#####################################################################################
 # Check if root
 #
 
@@ -198,10 +203,13 @@ do
   echo
   echo "home)   do the $HomeFolderToBackup borg backup"
   echo "root)   do the / (root) borg backup"
-  echo "umount) UNmount the crypt volume in order to unplug the disk"
+  echo
+  echo "borgmount) borg mount the volumes under /borgmnt"
+  echo "borgumount) borg UNmount the volumes under /borgmnt"
   echo
   echo "extract) extract (restore) a backup"
   echo
+  echo "umount) UNmount the crypt volume in order to unplug the disk"
   echo "reset)  reset the Crypted volume $CryptedLuksFile (DANGEROUS!!)"
   echo "exit)   Exit this Backup Tool"
   echo
@@ -309,6 +317,42 @@ do
         echo "Backup is finished"
         echo
       fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # Borg mount Requested
+    borgmount)
+      CheckMountVolume "$BackupMountPoint" $LuksDev
+      if [ `echo $?` -ne 0 ]
+      then
+        echo "Could be a good idea to first mount the Crypted Volume !"
+      else
+       ListBorgBackups $BackupMountPoint/BorgRepo
+      fi
+      mkdir -p /borgmnt
+      echo;echo "Choose one backup to mount (or empty means ALL)"
+      read backupToMount
+      if [ -z $backupToMount ]
+      then
+        borg mount $BackupMountPoint/BorgRepo /borgmnt
+      else
+        borg mount $BackupMountPoint/BorgRepo::$backupToMount /borgmnt
+      fi
+      echo;echo "Hit ENTER"
+      read a
+      pwdBefore=$PWD
+      echo;echo "Opening a BASH shell into /borgmnt (CTRL-D to return to this menu)"
+      cd /borgmnt;bash
+      cd $pwdBefore
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # Borg UNmount Requested
+    borgumount)
+      echo "Borg UNmount requested... UNmounting /borgmnt"
+      umount /borgmnt
       echo;echo "Hit ENTER"
       read a
     ;;
