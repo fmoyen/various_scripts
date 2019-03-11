@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Objective is to delete 
+#   - all dangling ("<none> <none>") docker images
+#   - too old (4 weeks) docker images
+# Author: Fabrice MOYEN
+# Date: 2019/03/11
+
+#---------------------------------------------------------------
+
+oldImagesBasename="centos-snap"
+
+#---------------------------------------------------------------
+echo "Deleting dangling images..."
+danglingImages=$(docker images --filter dangling=true -q)
+if [ ! -z "$danglingImages" ]
+then
+   docker rmi $danglingImages
+fi
+
+echo
+echo "Deleting old (more than 4 weeks) $imagesBasename images..."
+oldImages=$(docker images | grep $oldImagesBasename | grep "[4-9] weeks ago" | awk '{print $1":"$2}')
+if [ ! -z "$oldImages" ]
+then
+   docker rmi -f $oldImages
+fi
