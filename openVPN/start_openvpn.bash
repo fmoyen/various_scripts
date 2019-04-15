@@ -40,6 +40,8 @@ then
 	echo
 	echo "------------------------------------------------"
 	echo "Starting openVPN $primaryKey"
+	echo "  First deleting old $primaryKeyDir/nohup.out"
+	sudo rm -f $primaryKeyDir/nohup.out
 	cd $primaryKeyDir; sudo nohup ./start_openvpn.sh & 2>/dev/null
 	echo "------------------------------------------------"
 	echo "... Waiting 30s so we have time to connect ..."
@@ -55,6 +57,8 @@ then
 		echo
 		echo "------------------------------------------------"
 		echo "$primaryKey failed. Trying to start openVPN $backupKey"
+		echo "  First deleting old $backupKeyDir/nohup.out"
+		sudo rm -f $backupKeyDir/nohup.out
 		cd $backupKeyDir; sudo nohup ./start_openvpn.sh & 2>/dev/null
 		sleep 30 # waiting for the backup key to try and connect
 		ps -ef | grep -v grep | grep $backupKey > /dev/null
