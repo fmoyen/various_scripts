@@ -27,11 +27,29 @@ do
    echo "----------------------"
    echo "Before:"
    chage --list $i
-   echo "----------------------"
-   echo "Now:"
-   chage -d $Today $i
-   chage -W 15 $i
-   chage -M 90 $i
-   chage --list $i
    echo
 done
+
+   echo -e "OK to change the age of the passwords [Y/n] ? : \c"
+   read OKToChange
+   echo
+
+   if [ "$OKToChange" == "" ] || [ "$OKToChange" == "y" ]
+   then
+     echo "Changing..."
+     echo "######################################"
+     for i in $Accounts
+     do
+       echo "----------------------"
+       echo "Now:"
+       chage -d $Today $i
+       chage -W 15 $i
+       chage -M 90 $i
+       chage --list $i
+       echo
+     done
+   else 
+     echo "######################################"
+     echo "Doing nothing. Exiting..."
+     echo
+   fi
