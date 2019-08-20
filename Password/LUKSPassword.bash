@@ -38,25 +38,51 @@ do
 done
 
 echo
-echo "##########################################################"
-echo "--> CHANGING PASSWORD"
-OldPassword=""
-NewPassword=""
-Slot=0
+read -p "Do you want to change passphrase ?: " choix
+if [[ "$choix" == "Y" || "$choix" == "y" ]]
+then
+   echo
+   echo "##########################################################"
+   echo "--> CHANGING PASSWORD"
+   OldPassword=""
+   NewPassword=""
+   Slot=0
 
-read -p "     Key password slot: ($Slot by default): " Slot
-if [ "$Slot" == "" ]; then Slot=0; fi
+   read -p "     Key password slot: ($Slot by default): " Slot
+   if [ "$Slot" == "" ]; then Slot=0; fi
+
+   echo
+   echo "changing Key Password Slot $Slot with..."
+   echo "-------------------------------------"
+
+   for i in $VolumeList
+   do
+     echo
+     echo "cryptsetup luksChangeKey $i -S $Slot"
+     cryptsetup luksChangeKey $i -S 0
+   done
+fi
 
 echo
-echo "changing Key Password Slot $Slot with..."
-echo "-------------------------------------"
+read -p "Do you want to test passphrase ?: " choix
+if [[ "$choix" == "Y" || "$choix" == "y" ]]
+then
+   echo
+   echo "##########################################################"
+   echo "--> TESTING PASSWORD"
 
-for i in $VolumeList
-do
-  echo
-  echo "cryptsetup luksChangeKey $i -S $Slot"
-  cryptsetup luksChangeKey $i -S 0
-done
+   Slot=0
+
+   read -p "     Key password slot: ($Slot by default): " Slot
+   if [ "$Slot" == "" ]; then Slot=0; fi
+
+   for i in $VolumeList
+   do
+     echo
+     echo "cryptsetup luksOpen --test-passphrase --key-slot $Slot $i"
+     cryptsetup luksOpen --test-passphrase --key-slot $Slot $i && echo "correct"
+   done
+fi
 
 echo 
 echo "All done... Exiting"
