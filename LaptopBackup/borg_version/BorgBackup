@@ -384,9 +384,9 @@ do
 
 
       prune=N
-      echo;echo -e "Do you want to prune [N]/Y ? : \c"
+      echo;echo -e "Do you want to prune [N/y] ? : \c"
       read prune
-      if [ X$prune = "XY" ]
+      if [ X$prune = "Xy" ] || [ X$prune = "XY" ]
       then 
          borg prune -v --list --prefix='Home-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo
       fi
