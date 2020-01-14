@@ -33,6 +33,7 @@ do
   echo "power status | status) Display power status"
   echo "power on | on)         Activate power"
   echo "power off | off)       Deactivate power"
+  echo "power cycle | cycle)   Power cycle (off then on)"
   echo
   echo "sol activate | sol)    Deactivate sol console (in cas it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
@@ -90,6 +91,17 @@ do
 
     "power off"|off)
       CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power off"
+      echo "$CMD"
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # power cycle
+
+    "power cycle"|cycle)
+      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power cycle"
       echo "$CMD"
       $CMD
       echo;echo "Hit ENTER"
