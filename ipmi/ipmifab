@@ -8,6 +8,8 @@
 #####################################################################################
 # Parameters
 #
+# Format: server_name server-ipmi ipmiuser ipmipassword
+# example: lewen05 lewen05-ipmi root mypassword 
 PasswordFile=/home/fabrice/PasswordFile
 
 
@@ -38,6 +40,8 @@ do
   echo "sol activate | sol)    Deactivate sol console (in cas it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
   echo
+  echo "ssh)                   Ssh to FSP/BMC"
+  echo
   echo "exit | x)              Exit this Backup Tool"
   echo
   echo -e "? --> \c"
@@ -59,8 +63,9 @@ do
       echo "Which Server do you want to connect: "
       read Server
 
-      ipmiUser=`grep $Server $PasswordFile | cut -d" " -f2`
-      ipmiPassword=`grep $Server $PasswordFile | cut -d" " -f3`
+      ipmiServer=`grep $Server $PasswordFile | cut -d" " -f2`
+      ipmiUser=`grep $Server $PasswordFile | cut -d" " -f3`
+      ipmiPassword=`grep $Server $PasswordFile | cut -d" " -f4`
 
     ;;
 
@@ -68,7 +73,7 @@ do
     # power status
 
     "power status"|status)
-      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power status"
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power status"
       echo "$CMD"
       $CMD
       echo;echo "Hit ENTER"
@@ -79,7 +84,7 @@ do
     # power ON
 
     "power on"|on)
-      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power on"
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power on"
       echo "$CMD"
       $CMD
       echo;echo "Hit ENTER"
@@ -90,7 +95,7 @@ do
     # power OFF
 
     "power off"|off)
-      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power off"
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power off"
       echo "$CMD"
       $CMD
       echo;echo "Hit ENTER"
@@ -101,7 +106,7 @@ do
     # power cycle
 
     "power cycle"|cycle)
-      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power cycle"
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power cycle"
       echo "$CMD"
       $CMD
       echo;echo "Hit ENTER"
@@ -112,10 +117,10 @@ do
     # sol activate
 
     "sol activate"|sol)
-      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword sol deactivate"
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol deactivate"
       echo "$CMD"
       $CMD
-      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword sol activate"
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol activate"
       echo "$CMD"
       $CMD
       echo;echo "Hit ENTER"
@@ -126,7 +131,18 @@ do
     # sol deactivate
 
     "sol deactivate")
-      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword sol deactivate"
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol deactivate"
+      echo "$CMD"
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # ssh to FSP/BMC
+
+    ssh)
+      CMD="sshpass -p $ipmiPassword ssh ${ipmiUser}@${ipmiServer}"
       echo "$CMD"
       $CMD
       echo;echo "Hit ENTER"
