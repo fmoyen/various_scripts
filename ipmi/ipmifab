@@ -37,7 +37,7 @@ do
   echo "sol activate | sol)    Deactivate sol console (in cas it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
   echo
-  echo "exit)   Exit this Backup Tool"
+  echo "exit | x)              Exit this Backup Tool"
   echo
   echo -e "? --> \c"
 
@@ -120,7 +120,7 @@ do
     #------------------------------------------------------------------------------------
     # EXIT Requested
 
-    exit)
+    exit|x)
      echo "Exiting as requested"
      echo "Bye !!"
      echo
