@@ -1,0 +1,130 @@
+#/bin/bash
+
+#####################################################################################
+# Date: 2020/01/13
+# Author: Fabrice MOYEN
+# Objective: Simplifying ipmitool commands with menu and a user/password file
+
+#####################################################################################
+# Parameters
+#
+PasswordFile=/home/fabrice/PasswordFile
+
+
+#####################################################################################
+# MAIN
+#
+
+Choice=1
+Server=""
+
+while [ $Choice -eq 1 ]
+do
+  clear
+
+  echo "Chosen Server: $Server"
+  echo "Password File: $PasswordFile"
+  echo
+  echo "IPMITOOL for Power Servers"
+  echo "--------------------------"
+  echo
+  echo "server | s)            Choose the server"
+  echo
+  echo "power status | status) Display power status"
+  echo "power on | on)         Activate power"
+  echo "power off | off)       Deactivate power"
+  echo
+  echo "sol activate | sol)    Deactivate sol console (in cas it's needed) then activate it"
+  echo "sol deactivate)        Just deactivate sol console "
+  echo
+  echo "exit)   Exit this Backup Tool"
+  echo
+  echo -e "? --> \c"
+
+  read WhatToDo
+  echo
+
+  case $WhatToDo in
+
+    #------------------------------------------------------------------------------------
+    # Server Requested
+
+    server|s)
+      echo
+      echo "Which Server do you want to connect: "
+      read Server
+
+      ipmiUser=`grep $Server $PasswordFile | cut -d" " -f2`
+      ipmiPassword=`grep $Server $PasswordFile | cut -d" " -f3`
+
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # power status
+
+    "power status"|status)
+      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power status"
+      echo "$CMD"
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # power ON
+
+    "power on"|on)
+      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power on"
+      echo "$CMD"
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # power OFF
+
+    "power off"|off)
+      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword power off"
+      echo "$CMD"
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # sol activate
+
+    "sol activate"|sol)
+      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword sol deactivate"
+      echo "$CMD"
+      $CMD
+      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword sol activate"
+      echo "$CMD"
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # sol deactivate
+
+    "sol deactivate")
+      CMD="ipmitool -I lanplus -H ${Server}-ipmi -U $ipmiUser -P $ipmiPassword sol deactivate"
+      echo "$CMD"
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # EXIT Requested
+
+    exit)
+     echo "Exiting as requested"
+     echo "Bye !!"
+     echo
+     Choice=0
+     ;;
+  esac
+done
