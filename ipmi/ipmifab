@@ -51,6 +51,10 @@ do
 
     server|s)
       echo
+      echo "List of available server:"
+      echo "-------------------------"
+      cut -d" " -f1 $PasswordFile
+      echo
       echo "Which Server do you want to connect: "
       read Server
 
