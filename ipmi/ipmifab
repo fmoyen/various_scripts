@@ -59,9 +59,16 @@ do
       echo "List of available server:"
       echo "-------------------------"
       cut -d" " -f1 $PasswordFile
+      ServersList=`cut -d" " -f1 $PasswordFile`
       echo
       echo "Which Server do you want to connect: "
       read Server
+
+      # Allowing to tap only the beginning of server name
+      for i in $ServersList ; do
+        if [[ $i =~ $Server ]]; then  Server=$i; fi
+      done
+
 
       ipmiServer=`grep $Server $PasswordFile | cut -d" " -f2`
       ipmiUser=`grep $Server $PasswordFile | cut -d" " -f3`
