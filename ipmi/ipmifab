@@ -12,7 +12,7 @@
 # example: lewen05 lewen05-ipmi root mypassword 
 PasswordFile=/home/fabrice/PasswordFile
 MyAccount=fmoyen
-ShowCMD=1
+ShowCMD=yes
 ulimit -c unlimited # unlimited size for core dumps
 
 #####################################################################################
@@ -85,7 +85,7 @@ do
     # Show Commands with password or not
 
     show)
-      if [ $ShowCMD -eq 1 ]; then ShowCMD=0; else ShowCMD=1; fi
+      if [[ $ShowCMD == "yes" ]]; then ShowCMD=no; else ShowCMD=yes; fi
     ;;
 
     #------------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ do
 
     "power status"|status)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power status"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -104,7 +104,7 @@ do
 
     "power on"|on)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power on"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -115,7 +115,7 @@ do
 
     "power off"|off)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power off"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -126,7 +126,7 @@ do
 
     "power cycle"|cycle)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power cycle"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -137,10 +137,10 @@ do
 
     "sol activate"|sol)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol deactivate"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol activate"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -151,7 +151,7 @@ do
 
     "sol deactivate")
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol deactivate"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -162,7 +162,7 @@ do
 
     ssh)
       CMD="sshpass -p $ipmiPassword ssh ${ipmiUser}@${ipmiServer}"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -173,7 +173,7 @@ do
 
     linux)
       CMD="ssh ${MyAccount}@${Server}"
-      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
