@@ -11,7 +11,9 @@
 # Format: server_name server-ipmi ipmiuser ipmipassword
 # example: lewen05 lewen05-ipmi root mypassword 
 PasswordFile=/home/fabrice/PasswordFile
-
+MyAccount=fmoyen
+ShowCMD=1
+ulimit -c unlimited # unlimited size for core dumps
 
 #####################################################################################
 # MAIN
@@ -25,12 +27,14 @@ do
   clear
 
   echo "Chosen Server: $Server"
+  echo "Showing Commands (with passwords): $ShowCMD"
   echo "Password File: $PasswordFile"
   echo
   echo "IPMITOOL for Power Servers"
   echo "--------------------------"
   echo
   echo "server | s)            Choose the server"
+  echo "show)                  Show the commands with passwords or not"
   echo
   echo "power status | status) Display power status"
   echo "power on | on)         Activate power"
@@ -40,7 +44,8 @@ do
   echo "sol activate | sol)    Deactivate sol console (in cas it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
   echo
-  echo "ssh)                   Ssh to FSP/BMC"
+  echo "ssh)                   Ssh to FSP/BMC/IMM"
+  echo "linux)                 Ssh to Linux OS"
   echo
   echo "exit | x)              Exit this Backup Tool"
   echo
@@ -77,11 +82,18 @@ do
     ;;
 
     #------------------------------------------------------------------------------------
+    # Show Commands with password or not
+
+    show)
+      if [ $ShowCMD -eq 1 ]; then ShowCMD=0; else ShowCMD=1; fi
+    ;;
+
+    #------------------------------------------------------------------------------------
     # power status
 
     "power status"|status)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power status"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -92,7 +104,7 @@ do
 
     "power on"|on)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power on"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -103,7 +115,7 @@ do
 
     "power off"|off)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power off"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -114,7 +126,7 @@ do
 
     "power cycle"|cycle)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword power cycle"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -125,10 +137,10 @@ do
 
     "sol activate"|sol)
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol deactivate"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol activate"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -139,7 +151,7 @@ do
 
     "sol deactivate")
       CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol deactivate"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
@@ -150,7 +162,18 @@ do
 
     ssh)
       CMD="sshpass -p $ipmiPassword ssh ${ipmiUser}@${ipmiServer}"
-      echo "$CMD"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # ssh to Linux Operating System
+
+    linux)
+      CMD="ssh ${MyAccount}@${Server}"
+      if [ $ShowCMD -eq 1 ]; then echo "$CMD"; fi
       $CMD
       echo;echo "Hit ENTER"
       read a
