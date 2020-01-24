@@ -44,6 +44,7 @@ do
   echo "sol activate | sol)    Deactivate sol console (in cas it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
   echo
+  echo "shell)                 ipmitool shell to FSP/BMC/IMM"
   echo "ssh)                   Ssh to FSP/BMC/IMM"
   echo "linux)                 Ssh to Linux OS"
   echo
@@ -156,6 +157,18 @@ do
       echo;echo "Hit ENTER"
       read a
     ;;
+
+    #------------------------------------------------------------------------------------
+    # cwipmitool shell
+
+    shell)
+      CMD="ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword shell"
+      if [[ $ShowCMD == "yes" ]]; then echo "$CMD"; fi
+      $CMD
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
 
     #------------------------------------------------------------------------------------
     # ssh to FSP/BMC
