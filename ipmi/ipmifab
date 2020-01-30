@@ -26,12 +26,11 @@ while [ $Choice -eq 1 ]
 do
   clear
 
+  echo "IPMITOOL for Power Servers"
+  echo "--------------------------"
   echo "Chosen Server: $Server"
   echo "Showing Commands (with passwords): $ShowCMD"
   echo "Password File: $PasswordFile"
-  echo
-  echo "IPMITOOL for Power Servers"
-  echo "--------------------------"
   echo
   echo "server | s)            Choose the server"
   echo "show)                  Show the commands with passwords or not"
