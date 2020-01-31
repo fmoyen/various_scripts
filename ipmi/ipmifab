@@ -40,7 +40,7 @@ do
   echo "power off | off)       Deactivate power"
   echo "power cycle | cycle)   Power cycle (off then on)"
   echo
-  echo "sol activate | sol)    Deactivate sol console (in cas it's needed) then activate it"
+  echo "sol activate | sol)    Deactivate sol console (in case it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
   echo
   echo "shell)                 ipmitool shell to FSP/BMC/IMM"
