@@ -47,7 +47,7 @@ do
   echo "ssh)                   Ssh to FSP/BMC/IMM"
   echo "linux)                 Ssh to Linux OS"
   echo
-  echo "exit | x)              Exit this Backup Tool"
+  echo "exit | x)              Exit this IPMI Tool"
   echo
   echo -e "? --> \c"
 
