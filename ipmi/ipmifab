@@ -32,7 +32,7 @@ do
   echo "Showing Commands (with passwords): $ShowCMD"
   echo "Password File: $PasswordFile"
   echo
-  echo "server | s)            Choose the server (you may only give the beginning of the server name)"
+  echo "server | s)            Choose the server"
   echo "show)                  Show the commands with passwords or not"
   echo
   echo "power status | status) Display power status"
@@ -67,6 +67,7 @@ do
       ServersList=`cut -d" " -f1 $PasswordFile`
       echo
       echo "Which Server do you want to connect: "
+      echo "(you may only give the beginning of server name)"
       read Server
 
       # Allowing to tap only the beginning of server name
