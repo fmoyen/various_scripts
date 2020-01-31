@@ -32,7 +32,7 @@ do
   echo "Showing Commands (with passwords): $ShowCMD"
   echo "Password File: $PasswordFile"
   echo
-  echo "server | s)            Choose the server"
+  echo "server | s)            Choose the server (you may only give the beginning of the server name)"
   echo "show)                  Show the commands with passwords or not"
   echo
   echo "power status | status) Display power status"
