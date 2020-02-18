@@ -47,7 +47,7 @@ do
   echo -e "Chosen Server: \c"
   echo $Server |tr '[:lower:]' '[:upper:]'
   echo
-  echo "Showing Commands (with passwords): $ShowCMD"
+  echo "Showing Commands WITH passwords: $ShowCMD"
   echo "Password File: $PasswordFile"
   echo
   echo "server | s)            Choose the server"
