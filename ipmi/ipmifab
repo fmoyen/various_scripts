@@ -11,7 +11,7 @@
 # Format: server_name server-ipmi ipmiuser ipmipassword
 # example: lewen05 lewen05-ipmi root mypassword 
 PasswordFile=/home/fabrice/PasswordFile
-MyAccount=fmoyen
+MyAccount=`whoami`
 ShowCMD=no
 ulimit -c unlimited # unlimited size for core dumps
 
@@ -50,8 +50,11 @@ do
   echo "Showing Commands WITH passwords: $ShowCMD"
   echo "Password File: $PasswordFile"
   echo
+  echo "My Account (for linux option): $MyAccount"
+  echo
   echo "server | s)            Choose the server"
   echo "show)                  Show the commands with passwords or not"
+  echo "account)               Change my account ID (for login option)"
   echo
   echo "power status | status) Display power status"
   echo "power on | on)         Activate power"
@@ -106,6 +109,14 @@ do
 
     show)
       if [[ $ShowCMD == "yes" ]]; then ShowCMD=no; else ShowCMD=yes; fi
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # My Account (for login option)
+
+    account)
+      echo -e "My account for login to linux operation: \c"
+      read MyAccount
     ;;
 
     #------------------------------------------------------------------------------------
