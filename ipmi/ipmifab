@@ -60,6 +60,7 @@ do
   echo
   echo "sol activate | sol)    Deactivate sol console (in case it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
+  echo "ping)                  Ping FSP/BMC/IMM"
   echo
   echo "shell)                 ipmitool shell to FSP/BMC/IMM"
   echo "ssh)                   Ssh to FSP/BMC/IMM"
@@ -188,6 +189,20 @@ do
 
     "sol deactivate")
       RawCMD='ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword sol deactivate'
+      CMD=`eval echo $RawCMD`
+
+      DisplayCMD
+      $CMD
+
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # ping
+
+    "ping")
+      RawCMD='ping -c1 ${ipmiServer}'
       CMD=`eval echo $RawCMD`
 
       DisplayCMD
