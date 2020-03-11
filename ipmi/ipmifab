@@ -213,7 +213,18 @@ do
     # ping
 
     "ping")
-      RawCMD='ping -c1 ${ipmiServer}'
+
+      echo -e "Continuous ping or just once (once is the default) 1/c: \c"
+      read HowMany
+      case $HowMany in
+        c|C)
+         RawCMD='ping ${ipmiServer}'
+        ;;
+        *)
+         RawCMD='ping -c1 ${ipmiServer}'
+        ;;
+      esac
+
       CMD=`eval echo $RawCMD`
 
       DisplayCMD
