@@ -1,7 +1,7 @@
 #/bin/bash
 
 #####################################################################################
-# Date: 2020/01/13
+# Date: 2020/03/30
 # Author: Fabrice MOYEN
 # Objective: Simplifying ipmitool commands with menu and a user/password file
 
@@ -10,11 +10,12 @@
 #
 # Format: server_name server-ipmi ipmiuser ipmipassword
 # example: lewen05 lewen05-ipmi root mypassword 
-PasswordFile=/home/fabrice/PasswordFile
+ulimit -c unlimited # unlimited size for core dumps
 MyAccount=`whoami`
 ShowCMD=no
 SSHOptions='-o "StrictHostKeyChecking no"'
-ulimit -c unlimited # unlimited size for core dumps
+ScriptDir="`dirname "$(readlink -f "$0")"`"
+PasswordFile=$ScriptDir/PasswordFile # Warning: case with spaces not working for the moment
 
 #####################################################################################
 # FUNCTIONS
