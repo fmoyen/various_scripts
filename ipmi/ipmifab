@@ -56,7 +56,7 @@ do
   echo
   echo "server | s)            Choose the server"
   echo "show)                  Show the commands with passwords or not"
-  echo "account | a)               Change my account ID (for linux option)"
+  echo "account | a)           Change my account ID (for linux option)"
   echo
   echo "power status | status) Display power status"
   echo "power on | on)         Activate power"
