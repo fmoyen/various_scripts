@@ -13,6 +13,7 @@
 PasswordFile=/home/fabrice/PasswordFile
 MyAccount=`whoami`
 ShowCMD=no
+SSHOptions='-o "StrictHostKeyChecking no"'
 ulimit -c unlimited # unlimited size for core dumps
 
 #####################################################################################
@@ -54,7 +55,7 @@ do
   echo
   echo "server | s)            Choose the server"
   echo "show)                  Show the commands with passwords or not"
-  echo "account)               Change my account ID (for linux option)"
+  echo "account | a)               Change my account ID (for linux option)"
   echo
   echo "power status | status) Display power status"
   echo "power on | on)         Activate power"
@@ -114,7 +115,7 @@ do
     #------------------------------------------------------------------------------------
     # My Account (for login option)
 
-    account)
+    account|a)
       echo -e "My account for login to linux operation: \c"
       read MyAccount
     ;;
@@ -253,11 +254,11 @@ do
     # ssh to FSP/BMC
 
     ssh)
-      RawCMD='sshpass -p $ipmiPassword ssh ${ipmiUser}@${ipmiServer}'
+      RawCMD='sshpass -p $ipmiPassword ssh $SSHOptions ${ipmiUser}@${ipmiServer}'
       CMD=`eval echo $RawCMD`
 
       DisplayCMD
-      $CMD
+      eval $CMD # without eval, prb with SSHOptions
 
       echo;echo "Hit ENTER"
       read a
@@ -267,11 +268,11 @@ do
     # ssh to Linux Operating System
 
     linux)
-      RawCMD='ssh ${MyAccount}@${Server}'
+      RawCMD='ssh $SSHOptions ${MyAccount}@${Server}'
       CMD=`eval echo $RawCMD`
 
       DisplayCMD
-      $CMD
+      eval $CMD # without eval, prb with SSHOptions
 
       echo;echo "Hit ENTER"
       read a
