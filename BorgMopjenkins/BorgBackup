@@ -237,8 +237,69 @@ do
 
         echo
         echo "Borg Pruning Simulation:"
-        echo "borg prune -v --list --dry-run --prefix='Root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
+        echo "borg prune -v --list --dry-run --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
         borg prune -v --list --dry-run --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+
+        prune=N
+        echo;echo -e "Do you want to prune [N/y] ? : \c"
+        read prune
+        if [ X$prune = "XY" ]
+        then
+           borg prune -v --list --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+        fi
+      ;;
+
+            #------------------------------------------------------------------------------------
+      # Jenkins_home Borg pruning Requested
+      jenkins_homeprune)
+        keepDaily=7
+        keepWeekly=4
+        keepMonthly=6
+        echo "Describe the requested options for Home borg pruning:"
+        echo -e "    --keep-daily [$keepDaily]: \c"
+        read answer
+        if [ "X$answer" != "X" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
+        echo -e "    --keep-weekly [$keepWeekly]: \c"
+        read answer
+        if [ "X$answer" != "X" ] && [ $answer != $keepWeekly ]; then keepWeekly=$answer; fi
+        echo -e "    --keep-monthly [$keepMonthly]: \c"
+        read answer
+        if [ "X$answer" != "X" ] && [ $answer != $keepMonthly ]; then keepMonthly=$answer; fi
+
+        echo
+        echo "Borg Pruning Simulation:"
+        echo "borg prune -v --list --dry-run --prefix='jenkins_home-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
+        borg prune -v --list --dry-run --prefix='jenkins_home-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+
+        prune=N
+        echo;echo -e "Do you want to prune [N/y] ? : \c"
+        read prune
+        if [ X$prune = "XY" ]
+        then
+           borg prune -v --list --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+        fi
+      ;;
+      #------------------------------------------------------------------------------------
+      # Jenkins Borg pruning Requested
+      jenkinsprune)
+        keepDaily=7
+        keepWeekly=4
+        keepMonthly=6
+        echo "Describe the requested options for Home borg pruning:"
+        echo -e "    --keep-daily [$keepDaily]: \c"
+        read answer
+        if [ "X$answer" != "X" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
+        echo -e "    --keep-weekly [$keepWeekly]: \c"
+        read answer
+        if [ "X$answer" != "X" ] && [ $answer != $keepWeekly ]; then keepWeekly=$answer; fi
+        echo -e "    --keep-monthly [$keepMonthly]: \c"
+        read answer
+        if [ "X$answer" != "X" ] && [ $answer != $keepMonthly ]; then keepMonthly=$answer; fi
+
+        echo
+        echo "Borg Pruning Simulation:"
+        echo "borg prune -v --list --dry-run --prefix='jenkins-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
+        borg prune -v --list --dry-run --prefix='jenkins-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
 
         prune=N
         echo;echo -e "Do you want to prune [N/y] ? : \c"
