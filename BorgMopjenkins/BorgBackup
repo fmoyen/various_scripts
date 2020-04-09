@@ -243,7 +243,7 @@ do
         prune=N
         echo;echo -e "Do you want to prune [N/y] ? : \c"
         read prune
-        if [ X$prune = "XY" ]
+        if [ "$prune" == "y" ] || [ "$prune" == "Y" ]
         then
            borg prune -v --list --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
         fi
@@ -274,9 +274,9 @@ do
         prune=N
         echo;echo -e "Do you want to prune [N/y] ? : \c"
         read prune
-        if [ X$prune = "XY" ]
+        if [ "$prune" == "y" ] || [ "$prune" == "Y" ]
         then
-           borg prune -v --list --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+           borg prune -v --list --prefix='jenkins_home-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
         fi
       ;;
       #------------------------------------------------------------------------------------
@@ -304,9 +304,9 @@ do
         prune=N
         echo;echo -e "Do you want to prune [N/y] ? : \c"
         read prune
-        if [ X$prune = "XY" ]
+        if [ "$prune" == "y" ] || [ "$prune" == "Y" ]
         then
-           borg prune -v --list --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+           borg prune -v --list --prefix='jenkins-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
         fi
       ;;
 
