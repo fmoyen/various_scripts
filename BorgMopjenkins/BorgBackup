@@ -1,0 +1,377 @@
+#!/bin/bash
+
+#####################################################################################
+# Check if root user
+#
+
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script with root privileges"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
+fi
+
+#####################################################################################
+# Parameters
+#
+BackupMountPoint=/USBDisk
+BackupDir=$BackupMountPoint/BorgMopjenkins
+
+
+#####################################################################################
+# FUNCTIONS
+#
+function MountVolume
+{
+  mount_path=$1
+
+  echo "-----------------------------------------------"
+  echo "Creating the MountPoint $mount_path if needed"
+  mkdir -p $mount_path
+  ls -lad $mount_path
+  echo "Done"
+  echo
+
+  echo "Mounting the destination volume"
+  mount $mount_path
+  df -h $mount_path
+  IsMounted=`df | grep $mount_path | wc -l`
+  if [ $IsMounted -ne 1 ]
+  then
+    echo "$mount_path is not mounted / available"
+    echo "Please Check why"
+    echo "Exiting ..."
+    echo
+    exit 1
+  fi
+
+  echo "Done"
+}
+
+function UmountVolume
+{
+  mount_path=$1
+
+  echo "-----------------------------------------------"
+  echo "UNmounting the destination volume"
+  umount $mount_path
+
+  IsMounted=`df  | grep $mount_path | wc -l`
+  if [ $IsMounted -eq 1 ]
+  then
+    echo "$mount_path is STILL mounted"
+    echo "Please Check why"
+    echo "Exiting ..."
+    echo
+    exit 1
+  fi
+  echo "Done"
+}
+
+function CheckMountVolume
+{
+  mount_path=$1
+
+  IsMounted=`df | grep "$mount_path" | wc -l`
+  if [ $IsMounted -ne 1 ]
+  then
+    echo " Repository is not mounted onto $mount_path !!"
+    return 1
+  else
+    return 0
+  fi
+
+  echo "Done"
+}
+
+function ListBorgBackups
+{
+  # Assuming the Borg Backup repository is accessible (mounted)
+  borg_repo=$1
+
+  echo "-----------------------------------------------"
+  echo "Listing the available Borg backups:"
+  echo
+  echo "#############################################################"
+  borg list $borg_repo
+  echo "#############################################################"
+
+  echo
+}
+
+function DetailBorgBackups
+{
+  # Assuming the Borg Backup repository is accessible (mounted)
+  borg_repo=$1
+  backup=$2
+
+  echo "-----------------------------------------------"
+  echo "Listing the Borg backup: $2"
+  echo
+  echo "#############################################################"
+  borg list ${borg_repo}::$backup
+  echo "#############################################################"
+
+  echo
+}
+
+
+#####################################################################################
+# MAIN
+#
+
+Choice=1
+
+while [ $Choice -eq 1 ]
+do
+  clear
+    echo "Backup directory: $BackupDir"
+    echo "-----------------"
+    df -h $BackupDir
+
+  echo
+  echo "BACKUP TOOL for LINUX with BORG"
+  echo "----------------------------"
+  echo
+  echo "mount)  mount the USBDisk volume in order to restore/backup some files"
+  echo
+  echo "list)   list the available backups"
+  echo "detail)   list the files included inside a backup"
+  echo
+  echo "root)   do the / (root) borg backup"
+  echo "jenkins)   do the /var/jenkins_home borg backup"
+  #echo "snap-hdk)   do the /opt/IBM/snap-hdk borg backup"
+  echo
+  echo "borgmount) borg mount the volumes under /borgmnt"
+  echo "borgumount) borg UNmount the volumes under /borgmnt"
+  echo
+  echo "rootprune) borg prune (cleaning obsolete backups) of / (root)"
+  echo
+  echo "extract) extract (restore) a backup"
+  echo "umount) UNmount the USBDisk volume in order to unplug the disk"
+  echo
+  echo "init)  initialize the Borg Repo volume $BackupDir/BorgRepo (DANGEROUS!!)"
+  echo "exit)   Exit this Backup Tool"
+  echo
+  echo -e "? --> \c"
+
+  read WhatToDo
+  echo
+
+  case $WhatToDo in
+
+    #------------------------------------------------------------------------------------
+    # MOUNT Requested
+
+    mount)
+
+      echo "Mount requested... Mounting the crypted volume"
+
+      MountVolume  "$BackupMountPoint"
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # LISTING Requested
+
+    list)
+      CheckMountVolume $BackupMountPoint
+      if [ `echo $?` -ne 0 ]
+      then
+        echo "Could be a good idea to first mount the Backup Volume !"
+      else
+        ListBorgBackups $BackupDir/BorgRepo
+      fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # DETAIL Requested
+
+    detail)
+      ListBorgBackups $BackupDir/BorgRepo
+      echo
+      echo "From which backup do you want to see the detailed files list ?: "
+      read detail
+      echo
+      DetailBorgBackups $BackupDir/BorgRepo $detail | more
+
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # Root Borg pruning Requested
+    rootprune)
+      keepDaily=7
+      keepWeekly=4
+      keepMonthly=6
+      echo "Describe the requested options for Home borg pruning:"
+      echo -e "    --keep-daily [$keepDaily]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
+      echo -e "    --keep-weekly [$keepWeekly]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepWeekly ]; then keepWeekly=$answer; fi
+      echo -e "    --keep-monthly [$keepMonthly]: \c"
+      read answer
+      if [ "X$answer" != "X" ] && [ $answer != $keepMonthly ]; then keepMonthly=$answer; fi
+
+      echo
+      echo "Borg Pruning Simulation:"
+      echo "borg prune -v --list --dry-run --prefix='Root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
+      borg prune -v --list --dry-run --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+
+
+      prune=N
+      echo;echo -e "Do you want to prune [N/y] ? : \c"
+      read prune
+      if [ X$prune = "XY" ]
+      then
+         borg prune -v --list --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+      fi
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # UNMOUNT Requested
+
+    umount)
+
+      echo "UNmount requested... UNmounting the crypted volume"
+
+      UmountVolume "$BackupMountPoint"
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # EXTRACT Requested
+
+    extract)
+      ListBorgBackups $BackupDir/BorgRepo
+      echo
+      echo "Which backup do you want to extract ?: "
+      read detail
+      echo
+      echo "Hereunder a proposal for extracting the backup:"
+      echo "-----------------------------------------------"
+      echo "cd / ; borg extract --list $BackupDir/BorgRepo::$detail"
+      echo "(please verify everything is fine before using this command !)"
+
+
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # INIT Requested
+
+    init)
+      echo "-----------------------------------------------"
+      echo "Initializing the Borg Repository"
+      mkdir $BackupDir/BorgRepo
+      borg init --encryption=none $BackupDir/BorgRepo
+      echo "Done"
+      echo
+      echo;echo "Hit ENTER"
+      read b
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # jenkins_home backup Requested
+    jenkins)
+      Today=$(date +%Y-%m-%d-%H%M%S)
+      FolderToBackup=/var/jenkins_home
+      BackupPrefix=jenkins_home
+
+      borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
+
+      echo "Backup is finished"
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # root backup Requested
+    root)
+      Today=$(date +%Y-%m-%d-%H%M%S)
+      FolderToBackup=/
+      BackupPrefix=root
+
+      borg create --verbose --stats --progress --one-file-system --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
+
+      echo "Backup is finished"
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+    
+    #------------------------------------------------------------------------------------
+    # snap-hdk backup Requested
+    snap-hdk)
+      Today=$(date +%Y-%m-%d-%H%M%S)
+      FolderToBackup=/opt/IBM/snap-hdk
+      BackupPrefix=snap_hdk
+
+      borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
+
+      echo "Backup is finished"
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # Borg mount Requested
+    borgmount)
+      CheckMountVolume "$BackupMountPoint"
+      if [ `echo $?` -ne 0 ]
+      then
+        echo "Could be a good idea to first mount the Crypted Volume !"
+      else
+       ListBorgBackups $BackupDir/BorgRepo
+      fi
+      mkdir -p /borgmnt
+      echo;echo "Choose one backup to mount (or empty means ALL)"
+      read backupToMount
+      if [ -z $backupToMount ]
+      then
+        borg mount $BackupDir/BorgRepo /borgmnt
+      else
+        borg mount $BackupDir/BorgRepo::$backupToMount /borgmnt
+      fi
+      echo;echo "Hit ENTER"
+      read a
+      pwdBefore=$PWD
+      echo;echo "Opening a BASH shell into /borgmnt (CTRL-D to return to this menu)"
+      cd /borgmnt;bash
+      cd $pwdBefore
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # Borg UNmount Requested
+    borgumount)
+      echo "Borg UNmount requested... UNmounting /borgmnt"
+      umount /borgmnt
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # EXIT Requested
+
+    exit)
+     echo "Exiting as requested"
+     UmountVolume "$BackupMountPoint"
+     echo
+     echo "Bye !!"
+     echo
+     Choice=0
+     ;;
+  esac
+done
+
