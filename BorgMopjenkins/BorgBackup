@@ -18,7 +18,8 @@ fi
 #
 BackupMountPoint=/USBDisk
 BackupDir=$BackupMountPoint/BorgMopjenkins
-AllBackups="root jenkins_home jenkins"
+
+AllBackupNames="root jenkins_home jenkins"
 
 
 #####################################################################################
@@ -153,11 +154,11 @@ do
   echo "list)              List the available backups"
   echo "detail)            List the files included inside a backup"
   echo
-  echo "root)              Do the '/' (root) borg backup"
-  echo "jenkins_home)      Do the '/var/jenkins_home' borg backup (Homedir for MYJENKINS jenkins user)"
-  echo "jenkins)           Do the '/var/jenkins' borg backup (directory for mopjenkins jenkins slave node)"
+  echo "root)              Do the '/' filesystems borg backup (root)"
+  echo "jenkins_home)      Do the '/var/jenkins_home' filesystems borg backup (Homedir for MYJENKINS jenkins user)"
+  echo "jenkins)           Do the '/var/jenkins' filesystems borg backup (directory for mopjenkins jenkins slave node)"
   echo
-  echo "all)               Do all filesystems (`echo $AllBackups`) borg backups"
+  echo "all)               Do all filesystems (`echo $AllBackupNames`) borg backups"
   echo
   echo "borgmount)         Borg mount the volumes under /borgmnt"
   echo "borgumount)        Borg UNmount the volumes under /borgmnt"
@@ -177,13 +178,13 @@ do
 
   # If ALL backups requested, $WhatTodo contains all backup name
   if [ "$WhatToDo" == "all" ]; then
-    WhatToDo=$AllBackups
+    WhatToDo=$AllBackupNames
   fi
 
   # Doing what has been requested
-  for i in $WhatToDo; do
+  for action in $WhatToDo; do
 
-    case $i in
+    case $action in
 
       #------------------------------------------------------------------------------------
       # MOUNT Requested
@@ -223,7 +224,7 @@ do
         keepWeekly=4
         keepMonthly=6
         echo "which Backup do you want to prune?:"
-	echo "($AllBackups)"
+	echo "($AllBackupNames)"
 	echo -e "    -> \c"
         read BackupName
         echo "Describe the requested options for Home borg pruning:"
@@ -294,7 +295,7 @@ do
       root)
         Today=$(date +%Y-%m-%d-%H%M%S)
         FolderToBackup=/
-        BackupPrefix=root
+        BackupPrefix=$action
 
         borg create --verbose --stats --progress --one-file-system --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
 
@@ -306,7 +307,7 @@ do
       jenkins_home)
         Today=$(date +%Y-%m-%d-%H%M%S)
         FolderToBackup=/var/jenkins_home
-        BackupPrefix=jenkins_home
+        BackupPrefix=$action
   
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
@@ -318,7 +319,7 @@ do
       jenkins)
         Today=$(date +%Y-%m-%d-%H%M%S)
         FolderToBackup=/var/jenkins
-        BackupPrefix=jenkins
+        BackupPrefix=$action
   
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
