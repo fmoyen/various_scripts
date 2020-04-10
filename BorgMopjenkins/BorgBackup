@@ -296,6 +296,7 @@ do
         Today=$(date +%Y-%m-%d-%H%M%S)
         FolderToBackup=/
         BackupPrefix=$action
+
 	echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --one-file-system --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
 
