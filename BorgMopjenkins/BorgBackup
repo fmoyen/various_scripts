@@ -296,7 +296,7 @@ do
         Today=$(date +%Y-%m-%d-%H%M%S)
         FolderToBackup=/
         BackupPrefix=$action
-
+	echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --one-file-system --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
 
         echo "Backup is finished"
@@ -309,6 +309,7 @@ do
         FolderToBackup=/var/jenkins_home
         BackupPrefix=$action
   
+	echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
         echo "Backup is finished"
@@ -321,6 +322,7 @@ do
         FolderToBackup=/var/jenkins
         BackupPrefix=$action
   
+	echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
         echo "Backup is finished"
