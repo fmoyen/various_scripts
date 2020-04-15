@@ -31,7 +31,7 @@ function MountVolume
 {
   mount_path=$1
 
-  echo "-----------------------------------------------"
+  echo;echo "-----------------------------------------------"
   echo "Creating the MountPoint $mount_path if needed"
   mkdir -p $mount_path
   ls -lad $mount_path
@@ -60,7 +60,7 @@ function UmountVolume
 {
   mount_path=$1
 
-  echo "-----------------------------------------------"
+  echo;echo "-----------------------------------------------"
   echo "UNmounting the destination volume"
   umount $mount_path
 
@@ -97,7 +97,7 @@ function ListBorgBackups
   # Assuming the Borg Backup repository is accessible (mounted)
   borg_repo=$1
 
-  echo "-----------------------------------------------"
+  echo;echo "-----------------------------------------------"
   echo "Listing the available Borg backups:"
   echo
   echo "#############################################################"
@@ -113,7 +113,7 @@ function DetailBorgBackups
   borg_repo=$1
   backup=$2
 
-  echo "-----------------------------------------------"
+  echo;echo "-----------------------------------------------"
   echo "Listing the Borg backup: $2"
   echo
   echo "#############################################################"
@@ -202,7 +202,7 @@ do
       #------------------------------------------------------------------------------------
       # MOUNT Requested
       mount)
-        echo "Mount requested... Mounting the crypted volume"
+        echo;echo "Mount requested... Mounting the crypted volume"
   
         MountVolume  "$BackupMountPoint"
       ;;
@@ -236,7 +236,7 @@ do
         keepDaily=7
         keepWeekly=4
         keepMonthly=6
-        echo "which Backup do you want to prune?:"
+        echo;echo "which Backup do you want to prune?:"
 	echo "($AllBackupNames)"
 	echo -e "    -> \c"
         read BackupName
@@ -269,7 +269,7 @@ do
       # UNMOUNT Requested
 
       umount)
-        echo "UNmount requested... UNmounting the crypted volume"
+        echo;echo "UNmount requested... UNmounting the crypted volume"
 
         UmountVolume "$BackupMountPoint"
       ;;
@@ -291,7 +291,7 @@ do
       #------------------------------------------------------------------------------------
       # INIT Requested
       init)
-        echo "-----------------------------------------------"
+        echo;echo "-----------------------------------------------"
         echo "Initializing the Borg Repository"
         echo; echo -e "Are you sure (this will delete all existing backups) [y/N] : \c"
         read Sure
@@ -310,7 +310,7 @@ do
         FolderToBackup=/
         BackupPrefix=$action
 
-	echo "Doing $action borg backup..."
+	echo;echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --one-file-system --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
 
         echo "Backup is finished"
@@ -323,7 +323,7 @@ do
         FolderToBackup=/var/jenkins_home
         BackupPrefix=$action
   
-	echo "Doing $action borg backup..."
+	echo;echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
         echo "Backup is finished"
@@ -336,7 +336,7 @@ do
         FolderToBackup=/var/jenkins
         BackupPrefix=$action
   
-	echo "Doing $action borg backup..."
+	echo;echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
         echo "Backup is finished"
@@ -374,14 +374,14 @@ do
       #------------------------------------------------------------------------------------
       # Borg UNmount Requested
       borgumount)
-        echo "Borg UNmount requested... UNmounting /borgmnt"
+        echo;echo "Borg UNmount requested... UNmounting /borgmnt"
         umount /borgmnt
       ;;
 
       #------------------------------------------------------------------------------------
       # EXIT Requested
       exit)
-       echo "Exiting as requested"
+       echo;echo "Exiting as requested"
        UmountVolume "$BackupMountPoint"
        echo
        echo "Bye !!"
