@@ -49,6 +49,8 @@ function MountVolume
     echo "Exiting ..."
     echo
     exit 1
+  else
+    trap 'UmountVolume "$BackupMountPoint"' EXIT
   fi
 
   echo "Done"
