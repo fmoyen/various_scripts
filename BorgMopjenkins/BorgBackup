@@ -202,7 +202,8 @@ do
       #------------------------------------------------------------------------------------
       # MOUNT Requested
       mount)
-        echo;echo "Mount requested... Mounting the crypted volume"
+        echo;echo "-----------------------------------------------"
+        echo "Mount requested... Mounting the crypted volume"
   
         MountVolume  "$BackupMountPoint"
       ;;
@@ -236,7 +237,8 @@ do
         keepDaily=7
         keepWeekly=4
         keepMonthly=6
-        echo;echo "which Backup do you want to prune?:"
+	echo;echo "-----------------------------------------------"
+        echo "which Backup do you want to prune?:"
 	echo "($AllBackupNames)"
 	echo -e "    -> \c"
         read BackupName
@@ -269,7 +271,8 @@ do
       # UNMOUNT Requested
 
       umount)
-        echo;echo "UNmount requested... UNmounting the crypted volume"
+	echo;echo "-----------------------------------------------"
+        echo "UNmount requested... UNmounting the crypted volume"
 
         UmountVolume "$BackupMountPoint"
       ;;
@@ -310,7 +313,8 @@ do
         FolderToBackup=/
         BackupPrefix=$action
 
-	echo;echo "Doing $action borg backup..."
+	echo;echo "-----------------------------------------------"
+	echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --one-file-system --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
 
         echo "Backup is finished"
@@ -323,7 +327,8 @@ do
         FolderToBackup=/var/jenkins_home
         BackupPrefix=$action
   
-	echo;echo "Doing $action borg backup..."
+	echo;echo "-----------------------------------------------"
+	echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
         echo "Backup is finished"
@@ -336,7 +341,8 @@ do
         FolderToBackup=/var/jenkins
         BackupPrefix=$action
   
-	echo;echo "Doing $action borg backup..."
+	echo;echo "-----------------------------------------------"
+	echo "Doing $action borg backup..."
         borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
         echo "Backup is finished"
@@ -374,21 +380,23 @@ do
       #------------------------------------------------------------------------------------
       # Borg UNmount Requested
       borgumount)
-        echo;echo "Borg UNmount requested... UNmounting /borgmnt"
+	echo;echo "-----------------------------------------------"
+        echo "Borg UNmount requested... UNmounting /borgmnt"
         umount /borgmnt
       ;;
 
       #------------------------------------------------------------------------------------
       # EXIT Requested
       exit)
-       echo;echo "Exiting as requested"
-       UmountVolume "$BackupMountPoint"
-       echo
-       echo "Bye !!"
-       echo
-       Choice=0
-       EmptyMeansHitENTER="NO"
-       ;;
+	echo;echo "-----------------------------------------------"
+       	echo "Exiting as requested"
+	UmountVolume "$BackupMountPoint"
+	echo
+	echo "Bye !!"
+	echo
+	Choice=0
+	EmptyMeansHitENTER="NO"
+      ;;
     esac
 
   done # for-loop for ALL case
