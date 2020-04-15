@@ -263,7 +263,7 @@ do
         read prune
         if [ "$prune" == "y" ] || [ "$prune" == "Y" ]
         then
-           borg prune -v --list --prefix='root-' --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+           borg prune -v --list --prefix="$BackupName-" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
         fi
       ;;
 
