@@ -21,6 +21,8 @@ BackupDir=$BackupMountPoint/BorgMopjenkins
 
 AllBackupNames="root jenkins_home jenkins"
 
+Menu=1 # 0 => action given with a parameter ==> no menu, just doing action
+
 
 #####################################################################################
 # FUNCTIONS
@@ -131,6 +133,13 @@ function HitENTER
 # MAIN
 #
 
+# What to do given with a parameter
+if [ $# -eq 1 ]
+then
+  Menu=0
+  WhatToDo=$1 
+fi
+
 # Mount volume
 MountVolume  "$BackupMountPoint"
 
@@ -139,42 +148,44 @@ Choice=1
 
 while [ $Choice -eq 1 ]
 do
-  EmptyMeansHitENTER=""
-  clear
-  echo "Backup directory: $BackupDir"
-  echo "-----------------"
-  df -h $BackupDir
+  if [ $Menu -eq 1 ]; then
+    EmptyMeansHitENTER=""
+    clear
+    echo "Backup directory: $BackupDir"
+    echo "-----------------"
+    df -h $BackupDir
 
-  echo
-  echo "BACKUP TOOL for LINUX with BORG"
-  echo "----------------------------"
-  echo
-  echo "mount)             Mount the USBDisk volume in order to restore/backup some files"
-  echo
-  echo "list)              List the available backups"
-  echo "detail)            List the files included inside a backup"
-  echo
-  echo "root)              Do the '/' filesystems borg backup (root)"
-  echo "jenkins_home)      Do the '/var/jenkins_home' filesystems borg backup (Homedir for MYJENKINS jenkins user)"
-  echo "jenkins)           Do the '/var/jenkins' filesystems borg backup (directory for mopjenkins jenkins slave node)"
-  echo
-  echo "all)               Do all filesystems (`echo $AllBackupNames`) borg backups"
-  echo
-  echo "borgmount)         Borg mount the volumes under /borgmnt"
-  echo "borgumount)        Borg UNmount the volumes under /borgmnt"
-  echo
-  echo "prune)             Borg prune (cleaning obsolete backups)"
-  echo
-  echo "extract)           Get the command for extracting (restore) a backup"
-  echo "umount)            UNmount the USBDisk volume in order to unplug the disk"
-  echo
-  echo "init)              Initialize the Borg Repo volume $BackupDir/BorgRepo (DANGEROUS!!)"
-  echo "exit)              Exit this Backup Tool"
-  echo
-  echo -e "? --> \c"
+    echo
+    echo "BACKUP TOOL for LINUX with BORG"
+    echo "----------------------------"
+    echo
+    echo "mount)             Mount the USBDisk volume in order to restore/backup some files"
+    echo
+    echo "list)              List the available backups"
+    echo "detail)            List the files included inside a backup"
+    echo
+    echo "root)              Do the '/' filesystems borg backup (root)"
+    echo "jenkins_home)      Do the '/var/jenkins_home' filesystems borg backup (Homedir for MYJENKINS jenkins user)"
+    echo "jenkins)           Do the '/var/jenkins' filesystems borg backup (directory for mopjenkins jenkins slave node)"
+    echo
+    echo "all)               Do all filesystems (`echo $AllBackupNames`) borg backups"
+    echo
+    echo "borgmount)         Borg mount the volumes under /borgmnt"
+    echo "borgumount)        Borg UNmount the volumes under /borgmnt"
+    echo
+    echo "prune)             Borg prune (cleaning obsolete backups)"
+    echo
+    echo "extract)           Get the command for extracting (restore) a backup"
+    echo "umount)            UNmount the USBDisk volume in order to unplug the disk"
+    echo
+    echo "init)              Initialize the Borg Repo volume $BackupDir/BorgRepo (DANGEROUS!!)"
+    echo "exit)              Exit this Backup Tool"
+    echo
+    echo -e "? --> \c"
 
-  read WhatToDo
-  echo
+    read WhatToDo
+    echo
+  fi
 
   # If ALL backups requested, $WhatTodo contains all backup name
   if [ "$WhatToDo" == "all" ]; then
@@ -379,6 +390,11 @@ do
     esac
 
   done # for-loop for ALL case
+
+  if [ $Menu -eq 0 ]; then
+    EmptyMeansHitEnter="NO"
+    Choice=0
+  fi
 
   HitENTER $EmptyMeansHitENTER
 
