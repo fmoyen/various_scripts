@@ -1,17 +1,5 @@
 #!/bin/bash
 
-#####################################################################################
-# Check if root user
-#
-
-if [ `whoami` != "root" ]
-then
-  echo
-  echo "You're not root. You need to execute this script with root privileges"
-  echo "Think of sudo command..."
-  echo "Exiting"
-  exit 0
-fi
 
 #####################################################################################
 # Parameters
@@ -29,6 +17,33 @@ Option=""   # option parameter given with the action to do
 #####################################################################################
 # FUNCTIONS
 #
+
+function usage
+{
+  echo
+  echo "`basename $0` Usage:"
+  echo "-------------------------"
+  echo
+  echo "  + You need to be root to use the script (sudo)"
+  echo
+  echo "  + No parameters given => `basename $0` starts the menu"
+  echo "  + One parameter given when starting `basename $0` (parameter chosen among the menu possible options) => no menu or question, just doing what has been requested"
+  echo "  + special case: when prune action is chosen as 1st parameter, you may provide nothing as 2nd parameter, or 'all', or any filesystem known by the tool (again see the menu options)"
+  echo "  + -h / -? / --help: shows this usage info" 
+  echo
+  echo "Example:"
+  echo "--------"
+  echo "`basename $0`"
+  echo "`basename $0` all"
+  echo "`basename $0` list"
+  echo "`basename $0` prune"
+  echo "`basename $0` prune all"
+  echo "`basename $0` prune root"
+  echo
+  exit 0
+}
+
+
 function MountVolume
 {
   mount_path=$1
@@ -143,6 +158,19 @@ then
   Menu=0
   WhatToDo=$1
   Option=$2
+  if [ "$WhatToDo" == "-h" ] || [ "$WhatToDo" == "-?" ] || [ "$WhatToDo" == "--help" ]; then
+    usage
+  fi
+fi
+
+# Check if root user
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script with root privileges"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
 fi
 
 # Mount volume
