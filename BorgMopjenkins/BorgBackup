@@ -300,7 +300,7 @@ do
           borg prune -v --list --dry-run --prefix="$backup-" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
 
           prune=N
-          if [ "$Option" == "" ]; then
+          if [ "$Option" != "all" ]; then
              echo;echo -e "Do you want to prune [N/y] ? : \c"
              read prune
           else
