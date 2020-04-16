@@ -281,6 +281,7 @@ do
 
           if [ "$prune" == "y" ] || [ "$prune" == "Y" ]
           then
+	     echo "Pruning..."
              borg prune -v --list --prefix="$backup-" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
           fi
         done
