@@ -21,7 +21,9 @@ BackupDir=$BackupMountPoint/BorgMopjenkins
 
 AllBackupNames="root jenkins_home jenkins"
 
-Menu=1 # 0 => action given with a parameter ==> no menu, just doing action
+Menu=1      # 0 => action given with a parameter ==> no menu, just doing action
+WhatToDo="" # which action you want to do (cf menu choices hereunder)
+Option=""   # option parameter given with the action to do
 
 
 #####################################################################################
@@ -135,11 +137,12 @@ function HitENTER
 # MAIN
 #
 
-# What to do given with a parameter
-if [ $# -eq 1 ]
+# When parameters are given when launching the script
+if [ $# -gt 0 ]
 then
   Menu=0
-  WhatToDo=$1 
+  WhatToDo=$1
+  Option=$2
 fi
 
 # Mount volume
@@ -198,7 +201,7 @@ do
   for action in $WhatToDo; do
 
     case $action in
-
+   
       #------------------------------------------------------------------------------------
       # MOUNT Requested
       mount)
@@ -238,33 +241,49 @@ do
         keepWeekly=4
         keepMonthly=6
 	echo;echo "-----------------------------------------------"
-        echo "which Backup do you want to prune?:"
-	echo "($AllBackupNames)"
-	echo -e "    -> \c"
-        read BackupName
-        echo "Describe the requested options for Home borg pruning:"
-        echo -e "    --keep-daily [$keepDaily]: \c"
-        read answer
-        if [ "$answer" != "" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
-        echo -e "    --keep-weekly [$keepWeekly]: \c"
-        read answer
-        if [ "$answer" != "" ] && [ $answer != $keepWeekly ]; then keepWeekly=$answer; fi
-        echo -e "    --keep-monthly [$keepMonthly]: \c"
-        read answer
-        if [ "$answer" != "" ] && [ $answer != $keepMonthly ]; then keepMonthly=$answer; fi
+ 
+        if [ "$Option" == "" ]; then  # No parameter(s) given => menu
+          echo "which Backup do you want to prune?:"
+	  echo "($AllBackupNames)"
+	  echo -e "    -> \c"
+          read BackupName
+          echo "Describe the requested options for Home borg pruning:"
+          echo -e "    --keep-daily [$keepDaily]: \c"
+          read answer
+          if [ "$answer" != "" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
+          echo -e "    --keep-weekly [$keepWeekly]: \c"
+          read answer
+          if [ "$answer" != "" ] && [ $answer != $keepWeekly ]; then keepWeekly=$answer; fi
+          echo -e "    --keep-monthly [$keepMonthly]: \c"
+          read answer
+          if [ "$answer" != "" ] && [ $answer != $keepMonthly ]; then keepMonthly=$answer; fi
 
-        echo
-        echo "Borg Pruning Simulation:"
-        echo "borg prune -v --list --dry-run --prefix=\"$BackupName-\" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
-        borg prune -v --list --dry-run --prefix="$BackupName-" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+        elif [ "$Option" == "all" ]; then  # "prune all" parameters given
+          BackupName=$AllBackupNames
 
-        prune=N
-        echo;echo -e "Do you want to prune [N/y] ? : \c"
-        read prune
-        if [ "$prune" == "y" ] || [ "$prune" == "Y" ]
-        then
-           borg prune -v --list --prefix="$BackupName-" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+        else
+          BackupName=$Option  # "prune <something_except_all>" parameters given
         fi
+
+        for backup in $BackupName; do
+          echo
+          echo "Borg Pruning Simulation:"
+          echo "borg prune -v --list --dry-run --prefix=\"$backup-\" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupMountPoint/BorgRepo"
+          borg prune -v --list --dry-run --prefix="$backup-" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+
+          prune=N
+          if [ $Menu -eq 1 ]; then
+             echo;echo -e "Do you want to prune [N/y] ? : \c"
+             read prune
+          else
+             prune=Y
+          fi
+
+          if [ "$prune" == "y" ] || [ "$prune" == "Y" ]
+          then
+             borg prune -v --list --prefix="$backup-" --keep-daily=$keepDaily --keep-weekly=$keepWeekly --keep-monthly=$keepMonthly $BackupDir/BorgRepo
+          fi
+        done
       ;;
 
       #------------------------------------------------------------------------------------
