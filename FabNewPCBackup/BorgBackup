@@ -2,7 +2,7 @@
 
 #BORG_REPO=/DemoBackup/BORG_BACKUP_REPO
 BORG_REPO=borg@10.7.99.25:./repos/DemoBackup
-DEFAULT_EXCLUDE_FILE="BORG_exclude_file.txt"
+DEFAULT_EXCLUDE_FILE="BorgBackup.Exclude"
 
 if [ `whoami` != "root" ]
 then
