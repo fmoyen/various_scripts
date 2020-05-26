@@ -349,7 +349,7 @@ do
         echo "Initializing the Borg Repository"
         echo; echo -e "Are you sure (this will delete all existing backups) [y/N] : \c"
         read Sure
-        if [ "$Sure" == "y" ]; then
+        if [ "$Sure" == "y" ] || [ "$Sure" == "Y" ]; then
           mkdir $BackupDir/BorgRepo
           borg init --encryption=none $BackupDir/BorgRepo
           echo "Done"
