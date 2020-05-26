@@ -8,7 +8,7 @@ BackupScriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ExcludeDirs=$BackupScriptDir/BorgBackup.Exclude
 
 BackupMountPoint=/mnt/HM2SDisque
-BackupDir=$BackupMountPoint/Fabrice/FABNEWPC/BorgBackup
+BackupDir=$BackupMountPoint/Fabrice/FABNEWPC
 
 # AllBackupNames="e_fabrice c_fabrice"
 AllBackupNames="e_fabrice"
