@@ -4,10 +4,14 @@
 #####################################################################################
 # Parameters
 #
+BackupScriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ExcludeDirs=$BackupScriptDir/BorgBackup.Exclude
+
 BackupMountPoint=/mnt/HM2SDisque
 BackupDir=$BackupMountPoint/Fabrice/FABNEWPC/BorgBackup
 
-AllBackupNames="root jenkins_home jenkins"
+# AllBackupNames="e_fabrice c_fabrice"
+AllBackupNames="e_fabrice"
 
 Menu=1      # 0 => action given with a parameter ==> no menu, just doing action
 WhatToDo="" # which action you want to do (cf menu choices hereunder)
@@ -197,9 +201,8 @@ do
     echo "list)              List the available backups"
     echo "detail)            List the files included inside a backup"
     echo
-    echo "root)              Do the '/' filesystems borg backup (root)"
-    echo "jenkins_home)      Do the '/var/jenkins_home' filesystems borg backup (Homedir for MYJENKINS jenkins user)"
-    echo "jenkins)           Do the '/var/jenkins' filesystems borg backup (directory for mopjenkins jenkins slave node)"
+    echo "e | e_fabrice)         Do the 'Fabrice' user homedir on E: drive (that's the important one)"
+    echo "c | c_Fabrice)         Do the 'Fabrice' user homedir on C: drive"
     echo
     echo "all)               Do all filesystems (`echo $AllBackupNames`) borg backups"
     echo
@@ -355,43 +358,29 @@ do
       ;;
 
       #------------------------------------------------------------------------------------
-      # root backup Requested
-      root)
+      # e_Fabrice backup Requested
+      e | e_fabrice)
         Today=$(date +%Y-%m-%d-%H%M%S)
-        FolderToBackup=/
+        FolderToBackup=/mnt/e/Users/Fabrice
         BackupPrefix=$action
 
 	echo;echo "-----------------------------------------------"
 	echo "Doing $action borg backup..."
-        borg create --verbose --stats --progress --one-file-system --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
+        borg create --verbose --stats --progress --compression zlib --exclude-from $ExcludeDirs $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
 
         echo "Backup is finished"
       ;;
 
       #------------------------------------------------------------------------------------
-      # jenkins_home backup Requested
-      jenkins_home)
+      # c_fabrice backup Requested
+      c | c_fabrice)
         Today=$(date +%Y-%m-%d-%H%M%S)
-        FolderToBackup=/var/jenkins_home
+        FolderToBackup=/mnt/c/Users/Fabrice
         BackupPrefix=$action
   
 	echo;echo "-----------------------------------------------"
 	echo "Doing $action borg backup..."
-        borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
-  
-        echo "Backup is finished"
-      ;;
-
-      #------------------------------------------------------------------------------------
-      # jenkins backup Requested
-      jenkins)
-        Today=$(date +%Y-%m-%d-%H%M%S)
-        FolderToBackup=/var/jenkins
-        BackupPrefix=$action
-  
-	echo;echo "-----------------------------------------------"
-	echo "Doing $action borg backup..."
-        borg create --verbose --stats --progress --compression zlib $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
+        borg create --verbose --stats --progress --compression zlib --exclude-from $ExcludeDirs $BackupDir/BorgRepo::$BackupPrefix-$Today $FolderToBackup
   
         echo "Backup is finished"
       ;;
