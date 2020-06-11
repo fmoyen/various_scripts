@@ -34,12 +34,13 @@ done
    read OKToChange
    echo
 
-   if [ "$OKToChange" == "" ] || [ "$OKToChange" == "y" ]
+   if [ "$OKToChange" == "" ] || [ "$OKToChange" == "y" ] || [ "$OKToChange" == "Y" ]
    then
-     echo "Changing..."
-     echo "######################################"
+     echo; echo "Changing..."; echo
      for i in $Accounts
      do
+       echo "######################################"
+       echo "$i account"
        echo "----------------------"
        echo "Now:"
        chage -d $Today $i
