@@ -49,7 +49,13 @@ else
 		sudo kill $openvpnPID
         	if [ $? -eq 0 ]
 		then
+			echo -e "   -> $key still running \c"
+			while pgrep -f $key > /dev/null; do
+				sleep 1; echo -e ".\c"
+			done
+			echo
 			echo "   -> done !"
+			
 		else
 			echo
 			echo "------------------------------------------------"
