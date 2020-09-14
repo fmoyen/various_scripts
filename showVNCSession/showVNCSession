@@ -2,7 +2,7 @@
 
 FILE=showVNCSession.out
 
-ps -ef | grep -i vnc | egrep -v 'grep|awk' > $FILE
+ps -ef | grep -i "vnc :" | egrep -v 'grep|awk' > $FILE
 
 
 echo
@@ -12,11 +12,13 @@ echo
 
 while read -r line; do
 	USER=`echo $line | awk '{print $1}'`
-	TERM=":`echo $line | awk -F"Xtightvnc :" '{print $2}' | awk '{print $1}'`"
+	PID=`echo $line | awk '{print $2}'`
+	TERM=":`echo $line | awk -F"vnc :" '{print $2}' | awk '{print $1}'`"
 	PORT=`echo $line | awk -F"rfbport" '{print $2}' | awk '{print $1}'`
-	echo -e "User=$USER \c"
-	echo -e "VNC Terminal=$TERM \c"
-	echo -e "Port=$PORT"
+	echo -e "User=$USER \t\c"
+	echo -e "PID=$PID \t\c"
+	echo -e "VNC_Terminal=$TERM \t\c"
+	echo -e "Network_Port=$PORT"
 done < $FILE
 
 echo
