@@ -1,0 +1,23 @@
+#:/bin/bash
+
+FILE=showVNCSession.out
+
+ps -ef | grep -i vnc | egrep -v 'grep|awk' > $FILE
+
+
+echo
+echo "VNC running Sessions:"
+echo "====================="
+echo
+
+while read -r line; do
+	USER=`echo $line | awk '{print $1}'`
+	TERM=":`echo $line | awk -F"Xtightvnc :" '{print $2}' | awk '{print $1}'`"
+	PORT=`echo $line | awk -F"rfbport" '{print $2}' | awk '{print $1}'`
+	echo -e "User=$USER \c"
+	echo -e "VNC Terminal=$TERM \c"
+	echo -e "Port=$PORT"
+done < $FILE
+
+echo
+rm -f $FILE
