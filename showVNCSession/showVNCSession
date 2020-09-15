@@ -1,6 +1,6 @@
 #:/bin/bash
 
-FILE=showVNCSession.out
+FILE=/tmp/showVNCSession.out
 
 ps -ef | grep -i "vnc :" | egrep -v 'grep|awk' > $FILE
 
