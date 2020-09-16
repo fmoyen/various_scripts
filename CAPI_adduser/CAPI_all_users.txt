@@ -1,0 +1,7 @@
+# name		UID	GID	password	local		Additional group	sudo passwd	docker
+capiteam	XXXX	1111	XXXX		local		XXXX			XXXX		nodocker
+castella	1001 	1001 	alexandre	capiteam	capiteam		password	docker
+mesnet		1002	1002	bruno		capiteam	capiteam		password	docker
+fmoyen		1003	1003	fabrice		capiteam	capiteam		nopassword	docker
+capimop		1007	1007	jenkins		local		XXXX			nopassword	nodocker
+nimbix-cloud	1008	1008	nimbix		local		XXXX			XXXX		docker

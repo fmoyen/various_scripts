@@ -1,9 +1,1 @@
-# name		UID	GIDa	password	local		sudo passwd	docker
-castella	1001 	1001 	alexandre	capiteam	password	docker
-mesnet		1002	1002	bruno		capiteam	password	docker
-fmoyen		1003	1003	fabrice		capiteam	nopassword	docker
-cvermale	1006	1006	christian	capiteam	password	docker
-capimop		1007	1007	jenkins		local		nopassword	nodocker
-nimbix-cloud	1008	1008	nimbix		local		XXXX		docker
-capiteam	XXXX	1111	XXXX		local		XXXX		nodocker
-toto		1200	1200	totopwd		local		nopassword	nodocker
+CAPI_some_users.txt
