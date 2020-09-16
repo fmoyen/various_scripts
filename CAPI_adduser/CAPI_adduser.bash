@@ -37,7 +37,7 @@ do
   Local=${User[4]}; echo "Capiteam or local= $Local"
   MoreGroup=${User[5]}; echo "Additional group= $MoreGroup"
 
-  AdduserOptions=""
+  AdduserOptions="--shell /bin/bash"
   AddgroupOptions=""
 
   if [[ $Local == "capiteam" ]]; then
