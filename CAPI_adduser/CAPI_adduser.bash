@@ -27,9 +27,9 @@ do
   echo
   echo "====================================================================================="
   echo "User $n"
-  echo "-------"
-  Name=${User[0]}; echo "NAME= $Name"
-  ID=${User[1]}; echo "ID= $ID"
+  echo "-------"; echo
+  Name=${User[0]}; echo -e "NAME= $Name \t\c"
+  ID=${User[1]}; echo -e "ID= $ID \t\c"
   GID=${User[2]}; echo "GID= $GID"
   Local=${User[4]}; echo "Capiteam or local= $Local"
   MoreGroup=${User[5]}; echo "Additional group= $MoreGroup"
@@ -49,37 +49,38 @@ do
   if [ $ID != "XXXX" ]; then
     echo;echo "/etc/passwd:"
     echo "------------"
-    grep $Name /etc/passwd; NameRC=$?
-    grep $ID /etc/passwd; IDRC=$?
+    grep $Name /etc/passwd; NameRC=$?; [ $NameRC -ne 0 ] && echo "$Name non-existent"
+    grep $ID /etc/passwd; IDRC=$?; [ $IDRC -ne 0 ] && echo "$ID non-existent"
   fi
   echo;echo "/etc/group:"
   echo "-----------"
-  grep $GID /etc/group; GIDRC=$?
-  grep $Name /etc/group; GNameRC=$?
+  grep $Name /etc/group; GNameRC=$?; [ $GNameRC -ne 0 ] && echo "$Name non-existent"
+  grep $GID /etc/group; GIDRC=$?; [ $GIDRC -ne 0 ] && echo "$GID non-existent"
 
-  echo
 
   # We create User/Group
+  echo; echo "Actions:"
+  echo "--------"
   if [ $ID != "XXXX" ]; then
     if [ $NameRC -ne 0 ] && [ $IDRC -ne 0 ] && [ $GIDRC -ne 0 ] && [ $GNameRC -ne 0 ]; then
-      echo "  --> OK to create User $Name with Group $Name"
+      echo "--> OK to create User $Name with Group $Name"
       CMD="adduser $AdduserOptions --home $Homedir --uid=$ID --gid=$GID $Name"
       echo "Command: $CMD" 
       if [ $MoreGroup != "XXXX" ]; then
-        echo "  --> OK to add group $MoreGroup to the User $Name"
+        echo;echo "--> OK to add group $MoreGroup to the User $Name"
         CMD="usermod -aG $MoreGroup $Name"
         echo "Command: $CMD" 
       fi
     else
-      echo "  --> Cannot Create User $Name. Please check"
+      echo "--> Cannot Create User $Name. Please check"
     fi
   else
     if [ $GIDRC -ne 0 ]; then
-      echo "  --> OK to create Group $Name"
+      echo "--> OK to create Group $Name"
       CMD="groupadd $AddgroupOptions --gid=$GID $Name"
       echo "Command: $CMD" 
     else
-      echo "  --> Cannot Create Group $Name. Please check"
+      echo "--> Cannot Create Group $Name. Please check"
     fi
   fi
 
