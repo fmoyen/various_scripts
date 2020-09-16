@@ -28,13 +28,17 @@ do
   echo "====================================================================================="
   echo "User $n"
   echo "-------"; echo
+
+  # Variables
   Name=${User[0]}; echo -e "NAME= $Name \t\c"
   ID=${User[1]}; echo -e "ID= $ID \t\c"
   GID=${User[2]}; echo "GID= $GID"
   Local=${User[4]}; echo "Capiteam or local= $Local"
   MoreGroup=${User[5]}; echo "Additional group= $MoreGroup"
-  AdduserOptions="--group"
+
+  AdduserOptions=""
   AddgroupOptions=""
+
   if [[ $Local == "capiteam" ]]; then
     Homedir=/home/$Local/$Name
     AdduserOptions="$AdduserOptions --no-create-home"
@@ -52,6 +56,7 @@ do
     grep $Name /etc/passwd; NameRC=$?; [ $NameRC -ne 0 ] && echo "$Name non-existent"
     grep $ID /etc/passwd; IDRC=$?; [ $IDRC -ne 0 ] && echo "$ID non-existent"
   fi
+
   echo;echo "/etc/group:"
   echo "-----------"
   grep $Name /etc/group; GNameRC=$?; [ $GNameRC -ne 0 ] && echo "$Name non-existent"
@@ -61,8 +66,13 @@ do
   # We create User/Group
   echo; echo "Actions:"
   echo "--------"
+
   if [ $ID != "XXXX" ]; then
     if [ $NameRC -ne 0 ] && [ $IDRC -ne 0 ] && [ $GIDRC -ne 0 ] && [ $GNameRC -ne 0 ]; then
+      echo "--> OK to create Group $Name"
+      CMD="groupadd $AddgroupOptions --gid=$GID $Name"
+      echo "Command: $CMD" 
+      eval $CMD
       echo "--> OK to create User $Name with Group $Name"
       CMD="adduser $AdduserOptions --home $Homedir --uid=$ID --gid=$GID $Name"
       echo "Command: $CMD" 
@@ -73,18 +83,22 @@ do
         echo "Command: $CMD" 
         eval $CMD
       fi
+
     else
       echo "--> Cannot Create User $Name. Please check"
     fi
+
   else
     if [ $GIDRC -ne 0 ]; then
       echo "--> OK to create Group $Name"
       CMD="groupadd $AddgroupOptions --gid=$GID $Name"
       echo "Command: $CMD" 
       eval $CMD
+
     else
       echo "--> Cannot Create Group $Name. Please check"
     fi
+
   fi
 
 
