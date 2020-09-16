@@ -66,10 +66,12 @@ do
       echo "--> OK to create User $Name with Group $Name"
       CMD="adduser $AdduserOptions --home $Homedir --uid=$ID --gid=$GID $Name"
       echo "Command: $CMD" 
+      eval $CMD
       if [ $MoreGroup != "XXXX" ]; then
         echo;echo "--> OK to add group $MoreGroup to the User $Name"
         CMD="usermod -aG $MoreGroup $Name"
         echo "Command: $CMD" 
+        eval $CMD
       fi
     else
       echo "--> Cannot Create User $Name. Please check"
@@ -79,6 +81,7 @@ do
       echo "--> OK to create Group $Name"
       CMD="groupadd $AddgroupOptions --gid=$GID $Name"
       echo "Command: $CMD" 
+      eval $CMD
     else
       echo "--> Cannot Create Group $Name. Please check"
     fi
