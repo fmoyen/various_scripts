@@ -45,6 +45,7 @@ do
     AdduserOptions="$AdduserOptions --no-create-home"
   elif [[ $Local == "local" ]]; then
     Homedir=/home/$Name
+    AdduserOptions="$AdduserOptions --create-home"
   else
     echo "$Local case not known by script. Aborting..."
     exit 1
