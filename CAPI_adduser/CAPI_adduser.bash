@@ -74,7 +74,7 @@ do
       CMD="groupadd $AddgroupOptions --gid=$GID $Name"
       echo "Command: $CMD" 
       eval $CMD
-      echo "--> OK to create User $Name with Group $Name"
+      echo; echo "--> OK to create User $Name with Group $Name"
       CMD="useradd $AdduserOptions --home-dir $Homedir --uid=$ID --gid=$GID $Name"
       echo "Command: $CMD" 
       eval $CMD
@@ -84,7 +84,7 @@ do
         echo "Command: $CMD" 
         eval $CMD
       fi
-      echo "--> OK to change User $Name password with  password: $Password"
+      echo; echo "--> OK to change User $Name password with  password: $Password"
       CMD="echo \"$Name:$Password\" | chpasswd"
       echo "Command: $CMD" 
       eval $CMD
