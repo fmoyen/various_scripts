@@ -265,6 +265,7 @@ do
         CMD=`eval echo $RawCMD`
 
         echo "-----------------------------------------------------------------------------"
+        echo ${ServerLoop^^}
         DisplayCMD
         eval $CMD # without eval, prb with SSHOptions
         echo
