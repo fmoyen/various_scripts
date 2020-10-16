@@ -12,6 +12,7 @@
 # example: lewen05 lewen05-ipmi root mypassword 
 ulimit -c unlimited # unlimited size for core dumps
 MyAccount=`whoami`
+if [ $MyAccount == "fabrice" ]; then MyAccount="fmoyen"; fi
 ShowCMD=no
 SSHOptions='-o "StrictHostKeyChecking no"'
 ScriptDir="`dirname "$(readlink -f "$0")"`"
@@ -52,11 +53,11 @@ do
   echo "Showing Commands WITH passwords: $ShowCMD"
   echo "Password File: $PasswordFile"
   echo
-  echo "My Account (for linux option): $MyAccount"
+  echo "My Account (for linux & all options): $MyAccount"
   echo
   echo "server | s)            Choose the server"
   echo "show)                  Show the commands with passwords or not"
-  echo "account | a)           Change my account ID (for linux option)"
+  echo "account | a)           Change my account ID (for linux & all options)"
   echo
   echo "power status | status) Display power status"
   echo "power on | on)         Activate power"
@@ -66,6 +67,8 @@ do
   echo "sol activate | sol)    Deactivate sol console (in case it's needed) then activate it"
   echo "sol deactivate)        Just deactivate sol console "
   echo "ping)                  Ping FSP/BMC/IMM"
+  echo
+  echo "all)                   Run the same command on all Power OS systems (so no FSP/BMC/IMM or X86)"
   echo
   echo "shell)                 ipmitool shell to FSP/BMC/IMM"
   echo "ssh)                   Ssh to FSP/BMC/IMM"
@@ -85,7 +88,7 @@ do
 
     server|s)
       echo
-      echo "List of available server:"
+      echo "List of available servers:"
       echo "-------------------------"
       cut -d" " -f1 $PasswordFile
       ServersList=`cut -d" " -f1 $PasswordFile`
@@ -231,6 +234,41 @@ do
 
       DisplayCMD
       $CMD
+
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
+    #------------------------------------------------------------------------------------
+    # all
+
+    all)
+      ServersList=`cat $PasswordFile | awk '{if ($5 ~ /power/) {print $1}}'`
+      echo
+      echo "List of Power servers:"
+      echo "---------------------"
+      echo $ServersList
+      echo
+      echo "Are you OK with this list (just type ENTER) or do you want to provide your list ?:"
+      echo -e "-> \c"
+      read AlternativeServersList
+      if [[ $AlternativeServersList != "" ]]; then ServersList=$AlternativeServersList; fi
+      echo
+      echo "Which command do you want to run on all above systems ?:"
+      echo "(Special WARNING about destructive command!)"
+      echo -e "-> \c"
+      read MyCmd
+
+      echo
+      for ServerLoop in $ServersList; do
+        RawCMD='ssh $SSHOptions ${MyAccount}@${ServerLoop} \"$MyCmd\"'
+        CMD=`eval echo $RawCMD`
+
+        echo "-----------------------------------------------------------------------------"
+        DisplayCMD
+        eval $CMD # without eval, prb with SSHOptions
+        echo
+      done
 
       echo;echo "Hit ENTER"
       read a
