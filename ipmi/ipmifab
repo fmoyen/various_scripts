@@ -94,7 +94,7 @@ do
       ServersList=`cut -d" " -f1 $PasswordFile`
       echo
       echo "Which Server do you want to connect: "
-      echo "(you may only give the beginning of server name)"
+      echo "(you may only give just some distinctive letters of the server name)"
       read Server
 
       # Allowing to tap only the beginning of server name
