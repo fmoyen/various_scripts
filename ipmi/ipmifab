@@ -70,7 +70,7 @@ do
   echo
   echo "all)                   Run the same command on all Power OS systems (so no FSP/BMC/IMM or X86)"
   echo
-  echo "shell)                 ipmitool shell to FSP/BMC/IMM"
+  echo "ipmi)                 ipmitool shell to FSP/BMC/IMM"
   echo "ssh)                   Ssh to FSP/BMC/IMM"
   echo "linux)                 Ssh to Linux OS"
   echo
@@ -278,7 +278,7 @@ do
     #------------------------------------------------------------------------------------
     # ipmitool shell
 
-    shell)
+    ipmi)
       RawCMD='ipmitool -I lanplus -H ${ipmiServer} -U $ipmiUser -P $ipmiPassword shell'
       CMD=`eval echo $RawCMD`
 
