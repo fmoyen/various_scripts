@@ -8,5 +8,5 @@ for i in $Hosts; do
    echo $i
    echo "--------------------"
    Hostname=$i
-   ssh fmoyen@$i "grep \"bash$\" /etc/passwd" | awk -F: '{print $1}' | grep -v root > $ListDir/ExistingUsersList_$Hostname.txt
+   ssh fmoyen@$i "grep \"sh$\" /etc/passwd" | awk -F: '{print $1}' | grep -v root > $ListDir/ExistingUsersList_$Hostname.txt
 done
