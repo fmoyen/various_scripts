@@ -1,5 +1,9 @@
 #!/bin/bash
 
+##############################################################################################
+# Get all existing users (who can login) per system
+# One file per system
+
 Hosts=`cat ../../ipmi/PasswordFile | awk '{print $1}'`
 ListDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList/LISTS
 echo $Hosts
