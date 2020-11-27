@@ -1,0 +1,36 @@
+#!/bin/bash
+
+############################################################################################
+# Generate a file which gives all globally existing users (for all systems)
+# Then give the list of systems per user (on screen) 
+
+RootDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList
+ListDir=$RootDir/LISTS
+GlobalExistingUsersList=$RootDir/GlobalExistingUsersList.txt
+>$GlobalExistingUsersList
+SystemsPerUser=$RootDir/SystemsPerUsers.txt
+>$SystemsPerUser
+
+echo; echo "##############################################################"
+echo "LIST OF USERS PER MACHINE"
+
+for file in `ls $ListDir`; do
+  echo; echo "----------------------------------------------"
+  echo $file | awk -F_ '{print $2}' | awk -F. '{print $1}'
+  echo
+  while read line; do
+    if ! grep $line $GlobalExistingUsersList; then echo $line >> $GlobalExistingUsersList; fi
+  done < $ListDir/$file  
+done
+echo
+
+echo "##############################################################"
+echo "LIST OF MACHINES PER USER"
+
+while read user; do
+  echo; echo "----------------------------------------------"
+  echo $user
+  echo
+  grep -l $user $ListDir/* | awk -F_ '{print $2}' | awk -F. '{print $1}'
+done < $GlobalExistingUsersList | tee $SystemsPerUser
+echo
