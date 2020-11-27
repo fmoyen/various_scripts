@@ -1,0 +1,12 @@
+#!/bin/bash
+
+Hosts=`cat ../../ipmi/PasswordFile | awk '{print $1}'`
+ListDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList/LISTS
+echo $Hosts
+
+for i in $Hosts; do
+   echo $i
+   echo "--------------------"
+   Hostname=$i
+   ssh fmoyen@$i "grep \"bash$\" /etc/passwd" | awk -F: '{print $1}' | grep -v root > $ListDir/ExistingUsersList_$Hostname.txt
+done
