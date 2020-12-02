@@ -19,7 +19,7 @@ for file in `ls $ListDir`; do
   echo $file | awk -F_ '{print $2}' | awk -F. '{print $1}'
   echo
   while read line; do
-    if ! grep $line $GlobalExistingUsersList; then echo $line >> $GlobalExistingUsersList; fi
+    if ! grep $line $GlobalExistingUsersList; then echo $line | tee -a $GlobalExistingUsersList; fi
   done < $ListDir/$file  
 done
 echo
