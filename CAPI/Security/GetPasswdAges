@@ -1,0 +1,47 @@
+#!/bin/bash
+
+###################################################################################################################################
+# Date: 2019/12
+# Author: Fabrice MOYEN
+# Objective: Get the output of chage -l for all users who can connect
+
+
+###################################################################################################################################
+# Check if root
+#
+
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script with root privileges"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
+fi
+
+
+###################################################################################################################################
+# Parameters
+#
+
+ExistingUsersList=( $(grep "bash$" /etc/passwd | awk -F: '{print $1}' | grep -v root) )
+
+###################################################################################################################################
+# Main
+#
+
+echo;echo "-----------------------------------------------------------------------------------------------------------"
+echo "Users list:"
+echo "  -->  ${ExistingUsersList[@]}"
+
+echo;echo "-----------------------------------------------------------------------------------------------------------"
+UsersIndexMax=$((${#ExistingUsersList[*]}-1))
+for userindex in `seq 0 $UsersIndexMax`; do
+   user=${ExistingUsersList[$userindex]}
+   echo;echo $user
+   echo "--------------"
+   chage -l $user
+done
+echo "-----------------------------------------------------------------------------------------------------------"; echo
+
+
