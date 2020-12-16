@@ -366,7 +366,7 @@ do
       keepDaily=7
       keepWeekly=4
       keepMonthly=6
-      echo "Describe the requested options for Home borg pruning:"
+      echo "Describe the requested options for borg pruning:"
       echo -e "    --keep-daily [$keepDaily]: \c"
       read answer
       if [ "X$answer" != "X" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
@@ -400,7 +400,7 @@ do
       keepDaily=7
       keepWeekly=4
       keepMonthly=6
-      echo "Describe the requested options for Home borg pruning:"
+      echo "Describe the requested options for borg pruning:"
       echo -e "    --keep-daily [$keepDaily]: \c"
       read answer
       if [ "X$answer" != "X" ] && [ $answer != $keepDaily ]; then keepDaily=$answer; fi
