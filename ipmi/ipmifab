@@ -27,7 +27,7 @@ function DisplayCMD
   if [[ $ShowCMD == "yes" ]]; then
     VisibleCMD=$CMD
   else
-    VisibleCMD=`echo $RawCMD | sed 's/$ipmiPassword/XXXX/g'`
+    VisibleCMD=`echo $RawCMD | sed 's/$ipmiPasswordLoop/XXXX/g' | sed 's/$ipmiPassword/XXXX/g'`
     VisibleCMD=`eval echo $VisibleCMD`
   fi
 
@@ -69,6 +69,7 @@ do
   echo "ping)                  Ping FSP/BMC/IMM"
   echo
   echo "all)                   Run the same command on all Power OS systems (so no FSP/BMC/IMM or X86)"
+  echo "allstatus)             Display power status for all systems"
   echo
   echo "ipmi)                 ipmitool shell to FSP/BMC/IMM"
   echo "ssh)                   Ssh to FSP/BMC/IMM"
@@ -274,6 +275,41 @@ do
       echo;echo "Hit ENTER"
       read a
     ;;
+
+    #------------------------------------------------------------------------------------
+    # ALL power status
+
+    allstatus)
+      ServersList=`cat $PasswordFile | awk '{print $1}'`
+      echo
+      echo "List of servers:"
+      echo "----------------"
+      echo $ServersList
+      echo
+      echo "Are you OK with this list (just type ENTER) or do you want to provide your list ?:"
+      echo -e "-> \c"
+      read AlternativeServersList
+      if [[ $AlternativeServersList != "" ]]; then ServersList=$AlternativeServersList; fi
+      echo
+
+      for ServerLoop in $ServersList; do
+        ipmiServerLoop=`grep $ServerLoop $PasswordFile | cut -d" " -f2`
+        ipmiUserLoop=`grep $ServerLoop $PasswordFile | cut -d" " -f3`
+        ipmiPasswordLoop=`grep $ServerLoop $PasswordFile | cut -d" " -f4`
+        RawCMD='ipmitool -I lanplus -H ${ipmiServerLoop} -U $ipmiUserLoop -P $ipmiPasswordLoop power status'
+        CMD=`eval echo $RawCMD`
+
+        echo "-----------------------------------------------------------------------------"
+        echo ${ServerLoop^^}
+        DisplayCMD
+        $CMD
+	echo
+      done
+
+      echo;echo "Hit ENTER"
+      read a
+    ;;
+
 
     #------------------------------------------------------------------------------------
     # ipmitool shell
