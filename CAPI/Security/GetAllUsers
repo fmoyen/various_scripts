@@ -1,11 +1,59 @@
 #!/bin/bash
 
-##############################################################################################
+###################################################################################################################################
+# Date: 2019/12
+# Author: Fabrice MOYEN
+# Objective: Get all users list per system
+
+
+###################################################################################################################################
+# PARAMETERS
+#
+Hosts=`cat ../../ipmi/PasswordFile | awk '{print $1}'`
+ListDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList/LISTS
+
+
+###################################################################################################################################
+# FUNCTIONS
+#
+
+function usage
+{
+  echo
+  echo "`basename $0` Usage:"
+  echo "-------------------------"
+  echo
+  echo "  Objective: Generate a file per system which gives the list of all users with connection rights (users with \"*sh\" shell declared in /etc/passwd)"
+  echo -e "    + systems list: \c"
+  echo $Hosts
+  echo "    + Result files Directory: $ListDir"
+  echo
+  echo "  You may run UsersListAnalysis script after running this `basename $0` script"
+  echo
+  echo "  -h / -? / --help: shows this usage info" 
+  echo
+  exit 0
+}
+
+
+###################################################################################################################################
+# When parameters are given when launching the script
+#
+
+if [ $# -gt 0 ]
+then
+  WhatToDo=$1
+  if [ "$WhatToDo" == "-h" ] || [ "$WhatToDo" == "-?" ] || [ "$WhatToDo" == "--help" ]; then
+    usage
+  fi
+fi
+
+
+###################################################################################################################################
+# MAIN
 # Get all existing users (who can login) per system
 # One file per system
 
-Hosts=`cat ../../ipmi/PasswordFile | awk '{print $1}'`
-ListDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList/LISTS
 echo; echo "--------------------"
 echo "List of systems:"
 echo $Hosts

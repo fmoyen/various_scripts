@@ -1,8 +1,16 @@
 #!/bin/bash
 
-############################################################################################
-# Generate a file which gives all globally existing users (for all systems)
-# Then give the list of systems per user (on screen) 
+###################################################################################################################################
+# Date: 2019/12
+# Author: Fabrice MOYEN
+# Objective: 
+#  - Generate a file $GlobalExistingUsersList which gives all globally existing users (for all systems) 
+#  - Then generate a file $SystemsPerUser giving the list of systems per user
+
+
+###################################################################################################################################
+# PARAMETERS
+#
 
 RootDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList
 ListDir=$RootDir/LISTS
@@ -10,6 +18,47 @@ GlobalExistingUsersList=$RootDir/GlobalExistingUsersList.txt
 >$GlobalExistingUsersList
 SystemsPerUser=$RootDir/SystemsPerUsers.txt
 >$SystemsPerUser
+
+
+###################################################################################################################################
+# FUNCTIONS
+#
+
+function usage
+{
+  echo
+  echo "`basename $0` Usage:"
+  echo "-------------------------"
+  echo
+  echo "  Objective:"
+  echo "   + Generate a file which gives the list of all existing users (globally for all systems): $GlobalExistingUsersList"
+  echo "   + Generate a file which gives the list of systems per user: $SystemsPerUser"
+  echo
+  echo "  You need to run first GetAllUsers script before running this `basename $0` script"
+  echo "  (GetAllUsers script will create all needed files for `basename $0` script to run)"
+  echo
+  echo "  -h / -? / --help: shows this usage info" 
+  echo
+  exit 0
+}
+
+
+###################################################################################################################################
+# When parameters are given when launching the script
+#
+
+if [ $# -gt 0 ]
+then
+  WhatToDo=$1
+  if [ "$WhatToDo" == "-h" ] || [ "$WhatToDo" == "-?" ] || [ "$WhatToDo" == "--help" ]; then
+    usage
+  fi
+fi
+
+
+###################################################################################################################################
+# MAIN
+#
 
 echo; echo "##############################################################"
 echo "LIST OF USERS PER MACHINE"
