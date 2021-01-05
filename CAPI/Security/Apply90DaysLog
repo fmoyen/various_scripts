@@ -91,7 +91,7 @@ cp $Input $InputBAK
 # The output paragraphs will not be separated since the output separator remains a single newline.
 # To ensure that there is a blank line between output paragraphs, set the output record separator to two newlines: ORS='\n\n'
 
-awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by an empty line)
+awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by a blank line)
 awk -v RS='' '/auth.log/' $Input > $TMPFile   # The paragraph with the $Pattern
 sed -i 's/daily$/weekly/g' $TMPFile   # replacing "daily" by "weekly" if it exists
 sed -i 's/monthly$/weekly/g' $TMPFile   # replacing "monthly" by "weekly" if it exists
