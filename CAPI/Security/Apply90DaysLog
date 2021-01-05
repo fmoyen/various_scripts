@@ -1,0 +1,127 @@
+#!/bin/bash
+
+###################################################################################################################################
+# Date: 2021/01
+# Author: Fabrice MOYEN
+# Objective: Apply Accounts log retention rules
+
+# STEPS WE SHOULD DO:
+#  - check if root
+#  - check the OS running
+#  - Configure logrotate in order to keep accounts log retention during 90 days
+
+# RULES to follow:
+#  - Accounts log info kept during 90 days
+
+
+###################################################################################################################################
+# Functions
+#
+
+function usage
+{
+  echo
+  echo "`basename $0` Usage:"
+  echo "-------------------------"
+  echo
+  echo "  + script to be run on the system you want to tune"
+  echo
+  echo "  + You need to be root to use the script (sudo)"
+  echo
+  echo "  + Objective: Apply Accounts log retention rules (Configure logrotate in order to keep accounts log retention during 90 days)"
+  echo "  + -h / -? / --help: shows this usage info"
+  echo
+  exit 0
+}
+
+
+###################################################################################################################################
+# When parameters are given when launching the script
+#
+
+if [ $# -gt 0 ]
+then
+  WhatToDo=$1
+  if [ "$WhatToDo" == "-h" ] || [ "$WhatToDo" == "-?" ] || [ "$WhatToDo" == "--help" ]; then
+    usage
+  fi
+fi
+
+
+###################################################################################################################################
+# Check if root
+#
+
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script with root privileges"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
+fi
+
+
+###################################################################################################################################
+# Parameters
+#
+
+Input=$1
+InputName=$(basename $Input)
+TMPDir=/tmp
+TMPFile=$TMPDir/tempo ; > $TMPFile
+NewInput=$TMPDir/new$Inputname; > $NewInput
+
+Today=$(date +%Y-%m-%d-%H%M%S)
+InputBAK=$TMPDir/${InputName}_$Today
+
+
+###################################################################################################################################
+# MAIN
+#
+
+echo;echo "##########################################################################"
+echo "Backuping $Input  -->  $InputBAK"
+cp $Input $InputBAK
+
+# '' (the null string) is a magic value used to represent blank lines according to POSIX:
+# If RS='' then records are separated by sequences consisting of a <newline> plus one or more blank lines,
+
+# The output paragraphs will not be separated since the output separator remains a single newline.
+# To ensure that there is a blank line between output paragraphs, set the output record separator to two newlines: ORS='\n\n'
+
+awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # All paragraphs without the $Pattern
+awk -v RS='' '/auth.log/' $Input > $TMPFile   # The paragraph with the $Pattern
+sed -i 's/daily$/weekly/g' $TMPFile   # replacing "daily" by "weekly" if it exists
+sed -i 's/monthly$/weekly/g' $TMPFile   # replacing "monthly" by "weekly" if it exists
+sed -i 's/rotate .*/rotate 13/g' $TMPFile   # replacing "rotate <with any number>" by "rotate 13" if it exists
+
+if ! grep "weekly" $TMPFile >/dev/null; then  # if no weekly, adding "\tweekly" (\t=tab) after "{" line
+  sed -i '/{/a\
+  \tweekly' $TMPFile
+fi
+
+if ! grep "rotate " $TMPFile >/dev/null; then  # if no rotate, adding "\trotate 13" (\t=tab) after "{" line
+  sed -i '/{/a\
+  \trotate 13' $TMPFile
+fi
+
+cat $TMPFile >> $NewInput
+cp $NewInput $Input
+rm $TMPFile $NewInput
+
+echo;echo "##########################################################################"
+echo "OLD $Input file"
+echo "--------------------------------------------------------------------------"
+cat $InputBAK
+echo "--------------------------------------------------------------------------"
+
+echo;echo "##########################################################################"
+echo "NEW $Input file"
+echo "--------------------------------------------------------------------------"
+cat $Input
+echo "--------------------------------------------------------------------------"
+
+echo;echo "##########################################################################"
+echo "/etc/cron.daily/logrotate executed everyday by cron ==> no logrotate daemon to restart after modifying its config"
+echo
