@@ -86,11 +86,12 @@ cp $Input $InputBAK
 
 # '' (the null string) is a magic value used to represent blank lines according to POSIX:
 # If RS='' then records are separated by sequences consisting of a <newline> plus one or more blank lines,
+# (So a record is a whole paragraph)
 
 # The output paragraphs will not be separated since the output separator remains a single newline.
 # To ensure that there is a blank line between output paragraphs, set the output record separator to two newlines: ORS='\n\n'
 
-awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # All paragraphs without the $Pattern
+awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by an empty line)
 awk -v RS='' '/auth.log/' $Input > $TMPFile   # The paragraph with the $Pattern
 sed -i 's/daily$/weekly/g' $TMPFile   # replacing "daily" by "weekly" if it exists
 sed -i 's/monthly$/weekly/g' $TMPFile   # replacing "monthly" by "weekly" if it exists
