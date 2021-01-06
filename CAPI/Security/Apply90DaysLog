@@ -89,7 +89,8 @@ TMPDir=/tmp
 TMPFile=$TMPDir/tempo ; > $TMPFile
 
 OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
-WhoAmI=`who am i| awk '{print $1}'`
+#WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo # "who am i" not working when script is run through ssh
+WhoAmI="fmoyen"
 eval OutputFile=~$WhoAmI/CAPI/SECURITY/90DaysLog.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
 mkdir -p `dirname $OutputFile`
 
