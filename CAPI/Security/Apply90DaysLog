@@ -34,6 +34,22 @@ function usage
   exit 0
 }
 
+function DoBackupFile {
+   today=$(date +%Y-%m-%d-%H%M%S)
+   file=$1
+   if [[ $# -eq 2 ]]; then 
+      destdir=$2
+      backupfile="$destdir/`basename $file`-$today.bak"
+   else
+      backupfile="$file-$today.bak"
+   fi
+   echo;echo "-----------------------------------------------------------------------------------------------------------"
+   echo "Backing up file $file ---> $backupfile"
+   rsync -av $file $backupfile >/dev/null
+   ls -la $file $backupfile
+   echo "-----------------------------------------------------------------------------------------------------------"
+}
+
 
 ###################################################################################################################################
 # When parameters are given when launching the script
@@ -66,23 +82,56 @@ fi
 # Parameters
 #
 
-Input=$1
-InputName=$(basename $Input)
 TMPDir=/tmp
 TMPFile=$TMPDir/tempo ; > $TMPFile
-NewInput=$TMPDir/new$Inputname; > $NewInput
 
-Today=$(date +%Y-%m-%d-%H%M%S)
-InputBAK=$TMPDir/${InputName}_$Today
+OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
+WhoAmI=`who am i| awk '{print $1}'`
+eval OutputFile=~$WhoAmI/CAPI/SECURITY/90DaysLog.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
+mkdir -p `dirname $OutputFile`
 
 
 ###################################################################################################################################
 # MAIN
 #
+{
+echo; echo; echo "###################################################################################################################################"
+hostname | tr '[:lower:]' '[:upper:]'
+echo "-----------------------------------------------------------------------------------------------------------------------------------"
+echo "$WhoAmI --> `basename $0` "
+date
+echo
+echo "Output report file: $OutputFile"
+echo "###################################################################################################################################"; echo
 
-echo;echo "##########################################################################"
-echo "Backuping $Input  -->  $InputBAK"
-cp $Input $InputBAK
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# Check which OS's running
+
+echo;echo "-----------------------------------------------------------------------------------------------------------"
+if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
+   echo "RedHAT RHEL-like has been detected"
+   Input=/etc/logrotate.d/syslog
+   OS_ID="rhel"
+elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
+   echo "Canonical UBUNTU-like has been detected"
+   Input=/etc/logrotate.d/rsyslog
+   OS_ID="ubuntu"
+fi
+
+InputName=$(basename $Input)
+NewInput=$TMPDir/new$InputName; > $NewInput
+echo "-----------------------------------------------------------------------------------------------------------"
+
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# Backuping $Input file
+
+DoBackupFile $Input $TMPDir
+
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# Doing the work onto $Input file
 
 # '' (the null string) is a magic value used to represent blank lines according to POSIX:
 # If RS='' then records are separated by sequences consisting of a <newline> plus one or more blank lines,
@@ -91,8 +140,14 @@ cp $Input $InputBAK
 # The output paragraphs will not be separated since the output separator remains a single newline.
 # To ensure that there is a blank line between output paragraphs, set the output record separator to two newlines: ORS='\n\n'
 
-awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by a blank line)
-awk -v RS='' '/auth.log/' $Input > $TMPFile   # The paragraph with the $Pattern
+if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
+   awk -v RS='' -v ORS='\n\n' '!/secure/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by a blank line)
+   awk -v RS='' '/secure/' $Input > $TMPFile   # The paragraph with the $Pattern
+elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
+   awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by a blank line)
+   awk -v RS='' '/auth.log/' $Input > $TMPFile   # The paragraph with the $Pattern
+fi
+
 sed -i 's/daily$/weekly/g' $TMPFile   # replacing "daily" by "weekly" if it exists
 sed -i 's/monthly$/weekly/g' $TMPFile   # replacing "monthly" by "weekly" if it exists
 sed -i 's/rotate .*/rotate 13/g' $TMPFile   # replacing "rotate <with any number>" by "rotate 13" if it exists
@@ -111,18 +166,16 @@ cat $TMPFile >> $NewInput
 cp $NewInput $Input
 rm $TMPFile $NewInput
 
-echo;echo "##########################################################################"
-echo "OLD $Input file"
-echo "--------------------------------------------------------------------------"
-cat $InputBAK
-echo "--------------------------------------------------------------------------"
-
-echo;echo "##########################################################################"
+echo;echo "-----------------------------------------------------------------------------------------------------------"
 echo "NEW $Input file"
-echo "--------------------------------------------------------------------------"
+echo "----------------------------------"
 cat $Input
-echo "--------------------------------------------------------------------------"
+echo "-----------------------------------------------------------------------------------------------------------"
 
-echo;echo "##########################################################################"
+echo;echo "-----------------------------------------------------------------------------------------------------------"
 echo "/etc/cron.daily/logrotate executed everyday by cron ==> no logrotate daemon to restart after modifying its config"
+echo "-----------------------------------------------------------------------------------------------------------"
 echo
+} | tee -a $OutputFile
+
+chown $WhoAmI:$WhoAmI $OutputFile
