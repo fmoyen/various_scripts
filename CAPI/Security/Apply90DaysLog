@@ -47,6 +47,9 @@ function DoBackupFile {
    echo "Backing up file $file ---> $backupfile"
    rsync -av $file $backupfile >/dev/null
    ls -la $file $backupfile
+   echo
+   echo "$backupfile:"
+   cat $backupfile
    echo "-----------------------------------------------------------------------------------------------------------"
 }
 
