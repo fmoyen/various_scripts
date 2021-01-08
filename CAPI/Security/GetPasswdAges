@@ -21,6 +21,7 @@ function usage
   echo "  + You need to be root to use the script (sudo)"
   echo
   echo "  + Objective: Get the output of chage -l for all users who can connect (users with bash shell declared in /etc/passwd)"
+  echo
   echo "  + -h / -? / --help: shows this usage info" 
   echo
   exit 0

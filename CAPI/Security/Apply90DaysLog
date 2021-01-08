@@ -29,6 +29,7 @@ function usage
   echo "  + You need to be root to use the script (sudo)"
   echo
   echo "  + Objective: Apply Accounts log retention rules (Configure logrotate in order to keep accounts log retention during 90 days)"
+  echo
   echo "  + -h / -? / --help: shows this usage info"
   echo
   exit 0
