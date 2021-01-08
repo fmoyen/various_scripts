@@ -15,6 +15,19 @@
 
 
 ###################################################################################################################################
+# Parameters
+#
+
+TMPDir=/tmp
+TMPFile=$TMPDir/tempo ; > $TMPFile
+trap "rm $TMPFile" EXIT
+
+OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
+WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
+eval OutputFile=~$WhoAmI/CAPI/SECURITY/90DaysLog.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
+
+
+###################################################################################################################################
 # Functions
 #
 
@@ -31,6 +44,8 @@ function usage
   echo "  + Objective: Apply Accounts log retention rules (Configure logrotate in order to keep accounts log retention during 90 days)"
   echo
   echo "  + -h / -? / --help: shows this usage info"
+  echo
+  echo "Tool Output File will be: $OutputFile"
   echo
   exit 0
 }
@@ -83,19 +98,6 @@ fi
 
 
 ###################################################################################################################################
-# Parameters
-#
-
-TMPDir=/tmp
-TMPFile=$TMPDir/tempo ; > $TMPFile
-
-OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
-WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
-eval OutputFile=~$WhoAmI/CAPI/SECURITY/90DaysLog.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
-mkdir -p `dirname $OutputFile`
-
-
-###################################################################################################################################
 # MAIN
 #
 {
@@ -125,6 +127,9 @@ fi
 
 InputName=$(basename $Input)
 NewInput=$TMPDir/new$InputName; > $NewInput
+
+EXIT_cmd=`trap -p EXIT | awk -F"'" '{print $2}'` # get the commands for the already configured trap for EXIT signal
+trap "$EXIT_cmd; rm $NewInput" EXIT
 echo "-----------------------------------------------------------------------------------------------------------"
 
 
@@ -136,6 +141,8 @@ DoBackupFile $Input $TMPDir
 
 #----------------------------------------------------------------------------------------------------------------------------------
 # Doing the work onto $Input file
+
+mkdir -p `dirname $OutputFile`  # mkdir of $OutputFile directory if needed
 
 # '' (the null string) is a magic value used to represent blank lines according to POSIX:
 # If RS='' then records are separated by sequences consisting of a <newline> plus one or more blank lines,
@@ -168,7 +175,6 @@ fi
 
 cat $TMPFile >> $NewInput
 cp $NewInput $Input
-rm $TMPFile $NewInput
 
 echo;echo "-----------------------------------------------------------------------------------------------------------"
 echo "NEW $Input file"
