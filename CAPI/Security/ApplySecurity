@@ -10,7 +10,8 @@
 # Parameters
 #
 
-WhoAmI="fmoyen"
+WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
+
 
 ###################################################################################################################################
 # Functions

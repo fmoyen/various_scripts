@@ -55,17 +55,23 @@ fi
 # One file per system
 
 echo; echo "--------------------"
+echo -e "Which user do you want to use for doing SSH to systems ? : \c"
+read WhoAmI
+
+echo; echo "--------------------"
 echo "List of systems:"
 echo $Hosts
 echo; echo "--------------------"
 echo "Output directory:"
 echo $ListDir
 
+exit 0
+
 for i in $Hosts; do
    echo; echo "--------------------"
    echo $i
    Hostname=$i
-   ssh fmoyen@$i "grep \"sh$\" /etc/passwd" | awk -F: '{print $1}' | grep -v root > $ListDir/ExistingUsersList_$Hostname.txt
+   ssh ${WhoAmI}@$i "grep \"sh$\" /etc/passwd" | awk -F: '{print $1}' | grep -v root > $ListDir/ExistingUsersList_$Hostname.txt
    echo "  --> $ListDir/ExistingUsersList_$Hostname.txt"
 done
 echo "--------------------"; echo
