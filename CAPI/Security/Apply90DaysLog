@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 ###################################################################################################################################
 # Date: 2021/01
 # Author: Fabrice MOYEN
@@ -21,10 +22,26 @@
 TMPDir=/tmp
 TMPFile=$TMPDir/tempo ; > $TMPFile
 trap "rm $TMPFile" EXIT
+EXIT_cmd=`trap -p EXIT | awk -F"'" '{print $2}'` # get the commands for the already configured trap for EXIT signal
 
 OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
 WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
 eval OutputFile=~$WhoAmI/CAPI/SECURITY/90DaysLog.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# Check which OS's running
+
+if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
+   Input=/etc/logrotate.d/syslog
+   OS_ID="rhel"
+elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
+   Input=/etc/logrotate.d/rsyslog
+   OS_ID="ubuntu"
+fi
+
+InputName=$(basename $Input)
+NewInput=$TMPDir/new$InputName; > $NewInput
+trap "$EXIT_cmd; rm $NewInput" EXIT
 
 
 ###################################################################################################################################
@@ -45,7 +62,7 @@ function usage
   echo
   echo "  + -h / -? / --help: shows this usage info"
   echo
-  echo "Tool Output File will be: $OutputFile"
+  echo "This Tool Output File will be: $OutputFile"
   echo
   exit 0
 }
@@ -112,24 +129,14 @@ echo "##########################################################################
 
 
 #----------------------------------------------------------------------------------------------------------------------------------
-# Check which OS's running
+# Display which OS's running
 
 echo;echo "-----------------------------------------------------------------------------------------------------------"
 if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
    echo "RedHAT RHEL-like has been detected"
-   Input=/etc/logrotate.d/syslog
-   OS_ID="rhel"
 elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
    echo "Canonical UBUNTU-like has been detected"
-   Input=/etc/logrotate.d/rsyslog
-   OS_ID="ubuntu"
 fi
-
-InputName=$(basename $Input)
-NewInput=$TMPDir/new$InputName; > $NewInput
-
-EXIT_cmd=`trap -p EXIT | awk -F"'" '{print $2}'` # get the commands for the already configured trap for EXIT signal
-trap "$EXIT_cmd; rm $NewInput" EXIT
 echo "-----------------------------------------------------------------------------------------------------------"
 
 
