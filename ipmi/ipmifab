@@ -15,7 +15,7 @@ MyAccount=`whoami`
 if [ $MyAccount == "fabrice" ]; then MyAccount="fmoyen"; fi
 ShowCMD=no
 SSHOptions='-o "StrictHostKeyChecking no" -t' # -t in order to allocate terminal and allow commands such as "who am i"
-ScriptDir="`dirname "$(readlink -f "$0")"`"
+ScriptDir="`dirname "$(readlink "$0")"`" # following only the first link found, not all links
 PasswordFile=$ScriptDir/PasswordFile # Warning: case with spaces not working for the moment
 
 #####################################################################################
