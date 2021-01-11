@@ -10,7 +10,7 @@
 # PARAMETERS
 #
 Hosts=`cat ../../ipmi/PasswordFile | awk '{print $1}'`
-ListDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList/LISTS
+eval ListDir=~`whoami`/CAPI/SECURITY/ExistingUsersList/LISTS # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
 
 
 ###################################################################################################################################
@@ -24,6 +24,7 @@ function usage
   echo "-------------------------"
   echo
   echo "  Objective: Generate a file per system which gives the list of all users with connection rights (users with \"*sh\" shell declared in /etc/passwd)"
+  echo
   echo -e "    + systems list: \c"
   echo $Hosts
   echo "    + Result files Directory: $ListDir"
@@ -61,11 +62,17 @@ read WhoAmI
 echo; echo "--------------------"
 echo "List of systems:"
 echo $Hosts
+echo
+echo "Are you OK with this list (just type ENTER) or do you want to provide your list ?:"
+echo -e "-> \c"
+read MyHosts
+if [[ $MyHosts != "" ]]; then Hosts=$MyHosts; fi
+
 echo; echo "--------------------"
 echo "Output directory:"
 echo $ListDir
 
-exit 0
+mkdir -p $ListDir # if needed
 
 for i in $Hosts; do
    echo; echo "--------------------"

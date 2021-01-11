@@ -12,12 +12,10 @@
 # PARAMETERS
 #
 
-RootDir=/home/fabrice/capi/ARCHITECTURE/SECURITY/ExistingUsersList
+eval RootDir=~`whoami`/CAPI/SECURITY/ExistingUsersList
 ListDir=$RootDir/LISTS
 GlobalExistingUsersList=$RootDir/GlobalExistingUsersList.txt
->$GlobalExistingUsersList
 SystemsPerUser=$RootDir/SystemsPerUsers.txt
->$SystemsPerUser
 
 
 ###################################################################################################################################
@@ -31,6 +29,7 @@ function usage
   echo "-------------------------"
   echo
   echo "  Objective:"
+  echo
   echo "   + Generate a file which gives the list of all existing users (globally for all systems): $GlobalExistingUsersList"
   echo "   + Generate a file which gives the list of systems per user: $SystemsPerUser"
   echo
@@ -59,6 +58,18 @@ fi
 ###################################################################################################################################
 # MAIN
 #
+
+if [[ ! -d $ListDir ]]; then
+   echo
+   echo "$ListDir directory does not exist"
+   echo "Think of running GetAllUsers tool before running this one"
+   echo "Exiting"
+   echo
+   exit 1
+fi
+
+>$GlobalExistingUsersList
+>$SystemsPerUser
 
 echo; echo "##############################################################"
 echo "LIST OF USERS PER MACHINE"
