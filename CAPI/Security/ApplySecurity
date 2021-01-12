@@ -81,3 +81,6 @@ echo; echo "####################################################################
 echo $ScriptDir/ApplyPasswordRules; echo
 $ScriptDir/ApplyPasswordRules
 
+echo; echo "###################################################################################################################################"
+echo $ScriptDir/ApplySSHRootLogin; echo
+$ScriptDir/ApplySSHRootLogin; echo
