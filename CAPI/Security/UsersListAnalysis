@@ -12,7 +12,7 @@
 # PARAMETERS
 #
 
-eval RootDir=~`whoami`/CAPI/SECURITY/ExistingUsersList
+eval RootDir=~`whoami`/CAPI/SecurityToolsOutput/ExistingUsersList
 ListDir=$RootDir/LISTS
 GlobalExistingUsersList=$RootDir/GlobalExistingUsersList.txt
 SystemsPerUser=$RootDir/SystemsPerUsers.txt

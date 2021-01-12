@@ -4,44 +4,29 @@
 ###################################################################################################################################
 # Date: 2021/01
 # Author: Fabrice MOYEN
-# Objective: Apply Accounts log retention rules
+# Objective: Prevent direct root login (SSH) login
 
 # STEPS WE SHOULD DO:
 #  - check if root
-#  - check the OS running
-#  - Configure logrotate in order to keep accounts log retention during 90 days
+#  - Configure sshd in order to prevent root login permission
 
 # RULES to follow:
-#  - Accounts log info kept during 90 days
+#  - Root login prohibited
 
 
 ###################################################################################################################################
 # Parameters
 #
 
+#Input=/etc/ssh/sshd_config
+Input=/tmp/sshd_temp
 TMPDir=/tmp
-TMPFile=$TMPDir/tempo ; > $TMPFile
+TMPFile=$TMPDir/`basename $0`.tmp ; > $TMPFile
 trap "rm $TMPFile" EXIT
 EXIT_cmd=`trap -p EXIT | awk -F"'" '{print $2}'` # get the commands for the already configured trap for EXIT signal
 
-OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
 WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
-eval OutputFile=~$WhoAmI/CAPI/SecurityToolsOutput/90DaysLog.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
-
-#----------------------------------------------------------------------------------------------------------------------------------
-# Check which OS's running
-
-if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
-   Input=/etc/logrotate.d/syslog
-   OS_ID="rhel"
-elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
-   Input=/etc/logrotate.d/rsyslog
-   OS_ID="ubuntu"
-fi
-
-InputName=$(basename $Input)
-NewInput=$TMPDir/new$InputName; > $NewInput
-trap "$EXIT_cmd; rm $NewInput" EXIT
+eval OutputFile=~$WhoAmI/CAPI/SecurityToolsOutput/SSHRootLogin.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
 
 
 ###################################################################################################################################
@@ -58,7 +43,7 @@ function usage
   echo
   echo "  + You need to be root to use the script (sudo)"
   echo
-  echo "  + Objective: Apply Accounts log retention rules (Configure logrotate in order to keep accounts log retention during 90 days)"
+  echo "  + Objective: Prevent direct root login (SSH) login"
   echo
   echo "  + -h / -? / --help: shows this usage info"
   echo
@@ -129,68 +114,23 @@ echo "##########################################################################
 
 
 #----------------------------------------------------------------------------------------------------------------------------------
-# Display which OS's running
-
-echo;echo "-----------------------------------------------------------------------------------------------------------"
-if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
-   echo "RedHAT RHEL-like has been detected"
-elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
-   echo "Canonical UBUNTU-like has been detected"
-fi
-echo "-----------------------------------------------------------------------------------------------------------"
-
-
-#----------------------------------------------------------------------------------------------------------------------------------
 # Backuping $Input file
 
-DoBackupFile $Input $TMPDir
+DoBackupFile $Input 
 
 
 #----------------------------------------------------------------------------------------------------------------------------------
-# Doing the work onto $Input file
+# Doing the work into $Input file
 
 mkdir -p `dirname $OutputFile`  # mkdir of $OutputFile directory if needed
+ 
+sed -i 's/^PermitRootLogin/#PermitRootLogin/g' $Input
 
-# '' (the null string) is a magic value used to represent blank lines according to POSIX:
-# If RS='' then records are separated by sequences consisting of a <newline> plus one or more blank lines,
-# (So a record is a whole paragraph)
-
-# The output paragraphs will not be separated since the output separator remains a single newline.
-# To ensure that there is a blank line between output paragraphs, set the output record separator to two newlines: ORS='\n\n'
-
-if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
-   awk -v RS='' -v ORS='\n\n' '!/secure/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by a blank line)
-   awk -v RS='' '/secure/' $Input > $TMPFile   # The paragraph with the $Pattern
-elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
-   awk -v RS='' -v ORS='\n\n' '!/auth.log/' $Input >> $NewInput   # Every paragraphs without the $Pattern (separated by a blank line)
-   awk -v RS='' '/auth.log/' $Input > $TMPFile   # The paragraph with the $Pattern
-fi
-
-sed -i 's/daily$/weekly/g' $TMPFile   # replacing "daily" by "weekly" if it exists
-sed -i 's/monthly$/weekly/g' $TMPFile   # replacing "monthly" by "weekly" if it exists
-sed -i 's/rotate .*/rotate 13/g' $TMPFile   # replacing "rotate <with any number>" by "rotate 13" if it exists
-
-if ! grep "weekly" $TMPFile >/dev/null; then  # if no weekly, adding "\tweekly" (\t=tab) after "{" line
-  sed -i '/{/a\
-  \tweekly' $TMPFile
-fi
-
-if ! grep "rotate " $TMPFile >/dev/null; then  # if no rotate, adding "\trotate 13" (\t=tab) after "{" line
-  sed -i '/{/a\
-  \trotate 13' $TMPFile
-fi
-
-cat $TMPFile >> $NewInput
-cp $NewInput $Input
 
 echo;echo "-----------------------------------------------------------------------------------------------------------"
 echo "NEW $Input file"
 echo "----------------------------------"
 cat $Input
-echo "-----------------------------------------------------------------------------------------------------------"
-
-echo;echo "-----------------------------------------------------------------------------------------------------------"
-echo "/etc/cron.daily/logrotate executed everyday by cron ==> no logrotate daemon to restart after modifying its config"
 echo "-----------------------------------------------------------------------------------------------------------"
 echo
 } | tee -a $OutputFile
