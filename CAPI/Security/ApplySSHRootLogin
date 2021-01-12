@@ -18,8 +18,7 @@
 # Parameters
 #
 
-#Input=/etc/ssh/sshd_config
-Input=/tmp/sshd_temp
+Input=/etc/ssh/sshd_config
 TMPDir=/tmp
 TMPFile=$TMPDir/`basename $0`.tmp ; > $TMPFile
 trap "rm $TMPFile" EXIT
@@ -57,17 +56,14 @@ function DoBackupFile {
    file=$1
    if [[ $# -eq 2 ]]; then 
       destdir=$2
-      backupfile="$destdir/`basename $file`-$today.bak"
+      BackupFile="$destdir/`basename $file`-$today.bak"
    else
-      backupfile="$file-$today.bak"
+      BackupFile="$file-$today.bak"
    fi
    echo;echo "-----------------------------------------------------------------------------------------------------------"
-   echo "Backing up file $file ---> $backupfile"
-   rsync -av $file $backupfile >/dev/null
-   ls -la $file $backupfile
-   echo
-   echo "$backupfile:"
-   cat $backupfile
+   echo "Backing up file $file ---> $BackupFile"
+   rsync -av $file $BackupFile >/dev/null
+   ls -la $file $BackupFile
    echo "-----------------------------------------------------------------------------------------------------------"
 }
 
@@ -124,14 +120,25 @@ DoBackupFile $Input
 
 mkdir -p `dirname $OutputFile`  # mkdir of $OutputFile directory if needed
  
-sed -i 's/^PermitRootLogin/#PermitRootLogin/g' $Input
+sed -i 's/^PermitRootLogin/#PermitRootLogin/g' $Input  # Comment any PermitRootLogin line
+
+cat << EOF >> $Input  # Adding "PermitRootlogin no"
+
+# Direct root login is prohibited
+PermitRootLogin no
+EOF
 
 
 echo;echo "-----------------------------------------------------------------------------------------------------------"
-echo "NEW $Input file"
+echo "diff $BackupFile $Input"
 echo "----------------------------------"
-cat $Input
+diff $BackupFile $Input
 echo "-----------------------------------------------------------------------------------------------------------"
+
+echo;echo "-----------------------------------------------------------------------------------------------------------"
+echo "systemctl restart sshd.service"
+systemctl restart sshd.service
+
 echo
 } | tee -a $OutputFile
 
