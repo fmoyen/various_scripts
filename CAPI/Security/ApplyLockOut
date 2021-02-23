@@ -202,7 +202,12 @@ echo
 echo "Backuped configuration files are:"
 echo $LockOutRulesFiles_Backups
 echo "-----------------------------------------------------------------------------------------------------------"
+
+Title "systemctl restart sshd.service"
+systemctl restart sshd.service
+echo "-----------------------------------------------------------------------------------------------------------"
 echo
+
 } | tee -a $OutputFile
 
 chown $WhoAmI:$WhoAmI $OutputFile
