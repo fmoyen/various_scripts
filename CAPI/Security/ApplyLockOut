@@ -1,0 +1,205 @@
+#!/bin/bash
+
+###################################################################################################################################
+# Date: 2021/02
+# Author: Fabrice MOYEN
+# Objective: Apply Account Lock-out security rules
+
+# STEPS WE SHOULD DO:
+#  - check if root
+#  - check the OS running
+#  - Configure account lock-out rules (RHEL: /etc/pam.d/password-auth & /etc/pam.d/system-auth, Ubuntu: /etc/pam.d/common-auth)
+#  - Check status for existing users (RHEL: faillock --user <username>, Ubuntu: pam_tally2 -u <username>)
+#  - restart sshd daemon/service
+
+# RULES to follow:
+#  - deny=3 –> After three unsuccessful login attempts account will be locked
+#  - unlock_time=600 –> It means account will remain locked for 10 minutes or 600 seconds
+#  - We will not apply theses rules to root account. Otherwise we should use the "even_deny_root" parameter and  additionally for UBUNTU "root_unlock_time=600" parameter
+
+
+###################################################################################################################################
+# Parameters
+#
+
+DENY=3			#    deny   Number of unsuccessful login attempts that will lock the account
+UNLOCK_TIME=600		#    unlock_time   The number of seconds the account will remain locked
+
+OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
+WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
+eval OutputFile=~$WhoAmI/CAPI/SecurityToolsOutput/LockOut.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# Check which OS's running
+
+if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
+   LockOutRulesFiles="/etc/pam.d/password-auth /etc/pam.d/system-auth"
+   #FabDebug
+   #eval LockOutRulesFiles="~$WhoAmI/fabtest/password-auth ~$WhoAmI/fabtest/system-auth"
+   OS_ID="rhel"
+
+elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
+   LockOutRulesFiles="/etc/pam.d/common-auth"
+   #FabDebug
+   #eval LockOutRulesFiles="~$WhoAmI/fabtest/common-auth"
+   OS_ID="ubuntu"
+fi
+
+
+###################################################################################################################################
+# Functions
+#
+
+function usage
+{
+  echo
+  echo "`basename $0` Usage:"
+  echo "-------------------------"
+  echo
+  echo "  + script to be run on the system you want to tune"
+  echo
+  echo "  + You need to be root to use the script (sudo)"
+  echo
+  echo "  + Objective: Apply Account Lock-out security rules"
+  echo
+  echo "  + -h / -? / --help: shows this usage info" 
+  echo
+  echo "This Tool Output File will be: $OutputFile"
+  echo
+  exit 0
+}
+
+
+function DoBackupFile {
+   today=$(date +%Y-%m-%d-%H%M%S)
+   file=$1
+   if [[ $# -eq 2 ]]; then
+      destdir=$2
+      BackupFile="$destdir/`basename $file`-$today.bak"
+   else
+      BackupFile="$file-$today.bak"
+   fi
+   echo;echo "-----------------------------------------------------------------------------------------------------------"
+   echo "Backing up file $file ---> $BackupFile"
+   rsync -av $file $BackupFile >/dev/null
+   ls -la $file $BackupFile
+   echo "-----------------------------------------------------------------------------------------------------------"
+}
+
+
+function Title {
+   msg=$1
+   echo; echo
+   echo "==========================================================================================================="
+   echo $msg
+   echo "==========================================================================================================="
+}
+
+
+###################################################################################################################################
+# When parameters are given when launching the script
+#
+
+if [ $# -gt 0 ]
+then
+  WhatToDo=$1
+  if [ "$WhatToDo" == "-h" ] || [ "$WhatToDo" == "-?" ] || [ "$WhatToDo" == "--help" ]; then
+    usage
+  fi
+fi
+
+
+###################################################################################################################################
+# Check if root
+#
+
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script with root privileges"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
+fi
+
+
+###################################################################################################################################
+# Main
+#
+
+{
+echo; echo; echo "###################################################################################################################################"
+hostname | tr '[:lower:]' '[:upper:]'
+echo "-----------------------------------------------------------------------------------------------------------------------------------"
+echo "$WhoAmI --> `basename $0` "
+date
+echo
+echo "Output report file: $OutputFile"
+echo "###################################################################################################################################"; echo
+
+mkdir -p `dirname $OutputFile`
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# Display which OS's running
+
+echo;echo "-----------------------------------------------------------------------------------------------------------"
+if [[ $OS_ID == "rhel" ]]; then
+   echo "RedHAT RHEL-like has been detected"
+elif [[ $OS_ID == "ubuntu" ]]; then
+   echo "Canonical UBUNTU-like has been detected"
+fi
+echo
+echo "Lock-Out PAM Configuration files are:"
+echo $LockOutRulesFiles
+echo "-----------------------------------------------------------------------------------------------------------"
+
+
+#----------------------------------------------------------------------------------------------------------------------------------
+# Applying Lock-Out Security rules
+
+Title "Applying Lock-Out Security rules"
+for config_file in $LockOutRulesFiles; do
+   DoBackupFile $config_file 
+   LockOutRulesFiles_Backups="$LockOutRulesFiles_Backups $BackupFile"
+
+   echo;echo "-----------------------------------------------------------------------------------------------------------"
+   echo "Changing parameters in $config_file"
+
+   # RHEL-LIKE OS CHANGES
+   if [[ $OS_ID == "rhel" ]]; then
+      NewConfigLine="auth        required                                     pam_faillock.so preauth silent audit deny=$DENY unlock_time=$UNLOCK_TIME"
+      echo $NewConfigLine
+      sed -i "/pam_env.so/a $NewConfigLine" $config_file
+
+      NewConfigLine="auth        [default=die]                                pam_faillock.so authfail audit deny=$DENY unlock_time=$UNLOCK_TIME"
+      echo $NewConfigLine
+      sed -i "/^auth.*pam_unix.so/a $NewConfigLine" $config_file
+
+      NewConfigLine="account     required                                     pam_faillock.so"
+      echo $NewConfigLine
+      sed -i "/^account.*pam_unix.so/i $NewConfigLine" $config_file
+
+   # UBUNTU-LIKE OS CHANGES
+   elif [[ $OS_ID == "ubuntu" ]]; then
+      NewConfigLine="auth    required                        pam_tally2.so onerr=fail deny=$DENY unlock_time=$UNLOCK_TIME audit"
+      sed -i "/^auth.*pam_unix.so/i $NewConfigLine" $config_file
+   fi
+
+   echo
+   echo "config_file is now:"
+   echo "-------------------"
+   cat $config_file
+   echo "-----------------------------------------------------------------------------------------------------------"
+done
+
+Title "Summary"
+echo "Modified configuration files are:"
+echo $LockOutRulesFiles
+echo
+echo "Backuped configuration files are:"
+echo $LockOutRulesFiles_Backups
+echo "-----------------------------------------------------------------------------------------------------------"
+echo
+} | tee -a $OutputFile
+
+chown $WhoAmI:$WhoAmI $OutputFile
