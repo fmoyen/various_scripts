@@ -185,10 +185,11 @@ for config_file in $LockOutRulesFiles; do
       NewConfigLine="auth    required                        pam_tally2.so onerr=fail deny=$DENY unlock_time=$UNLOCK_TIME audit"
       sed -i "/^auth.*pam_unix.so/i $NewConfigLine" $config_file
    fi
+   echo "-----------------------------------------------------------------------------------------------------------"
 
-   echo
-   echo "config_file is now:"
-   echo "-------------------"
+   echo;echo "-----------------------------------------------------------------------------------------------------------"
+   echo "$config_file is now:"
+   echo "---------------------------"
    cat $config_file
    echo "-----------------------------------------------------------------------------------------------------------"
 done
