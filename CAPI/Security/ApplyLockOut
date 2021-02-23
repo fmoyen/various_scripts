@@ -196,7 +196,7 @@ for config_file in $LockOutRulesFiles; do
 done
 
 Title "Summary"
-echo
+echo;echo "-----------------------------------------------------------------------------------------------------------"
 echo "Modified configuration files are:"
 echo $LockOutRulesFiles
 echo
@@ -205,8 +205,9 @@ echo $LockOutRulesFiles_Backups
 echo "-----------------------------------------------------------------------------------------------------------"
 
 Title "systemctl restart sshd.service"
-echo
+echo;echo "-----------------------------------------------------------------------------------------------------------"
 systemctl restart sshd.service
+systemctl status sshd.service
 echo "-----------------------------------------------------------------------------------------------------------"
 echo
 
