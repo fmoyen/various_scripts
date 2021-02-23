@@ -183,6 +183,7 @@ for config_file in $LockOutRulesFiles; do
    # UBUNTU-LIKE OS CHANGES
    elif [[ $OS_ID == "ubuntu" ]]; then
       NewConfigLine="auth    required                        pam_tally2.so onerr=fail deny=$DENY unlock_time=$UNLOCK_TIME audit"
+      echo $NewConfigLine
       sed -i "/^auth.*pam_unix.so/i $NewConfigLine" $config_file
    fi
    echo "-----------------------------------------------------------------------------------------------------------"
