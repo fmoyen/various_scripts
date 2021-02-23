@@ -27,7 +27,8 @@ UNLOCK_TIME=600		#    unlock_time   The number of seconds the account will remai
 
 OS_ID=`cat /etc/os-release | grep "^ID=" | awk -F"=" '{print $2}' | sed 's/"//g'`
 WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
-eval OutputFile=~$WhoAmI/CAPI/SecurityToolsOutput/LockOut.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
+eval MyHomeDir="~$WhoAmI"
+OutputFile=$MyHomeDir/CAPI/SecurityToolsOutput/LockOut.out # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
 
 #----------------------------------------------------------------------------------------------------------------------------------
 # Check which OS's running
@@ -35,13 +36,13 @@ eval OutputFile=~$WhoAmI/CAPI/SecurityToolsOutput/LockOut.out # generic $HOME is
 if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]]; then
    LockOutRulesFiles="/etc/pam.d/password-auth /etc/pam.d/system-auth"
    #FabDebug
-   #eval LockOutRulesFiles="~$WhoAmI/fabtest/password-auth ~$WhoAmI/fabtest/system-auth"
+   #LockOutRulesFiles="$MyHomeDir/fabtest/password-auth $MyHomeDir/fabtest/system-auth"
    OS_ID="rhel"
 
 elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
    LockOutRulesFiles="/etc/pam.d/common-auth"
    #FabDebug
-   #eval LockOutRulesFiles="~$WhoAmI/fabtest/common-auth"
+   #LockOutRulesFiles="$MyHomeDir/fabtest/common-auth"
    OS_ID="ubuntu"
 fi
 
