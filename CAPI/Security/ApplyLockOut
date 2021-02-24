@@ -9,13 +9,25 @@
 #  - check if root
 #  - check the OS running
 #  - Configure account lock-out rules (RHEL: /etc/pam.d/password-auth & /etc/pam.d/system-auth, Ubuntu: /etc/pam.d/common-auth)
-#  - Check status for existing users (RHEL: faillock --user <username>, Ubuntu: pam_tally2 -u <username>)
 #  - restart sshd daemon/service
 
 # RULES to follow:
 #  - deny=3 –> After three unsuccessful login attempts account will be locked
 #  - unlock_time=600 –> It means account will remain locked for 10 minutes or 600 seconds
-#  - We will not apply theses rules to root account. Otherwise we should use the "even_deny_root" parameter and  additionally for UBUNTU "root_unlock_time=600" parameter
+#  - We will not apply theses rules to root account. Otherwise we should use the "even_deny_root" parameter and additionally for UBUNTU "root_unlock_time=600" parameter
+
+# INFORMATIONS:
+#  - Check status commands for existing users
+#      RHEL: faillock --user <username>
+#      Ubuntu: pam_tally2 -u <username>
+#
+#  - Check logs
+#      RHEL: grep pam_faillock /var/log/secure
+#      Ubuntu: grep pam_tally2 /var/log/auth.log
+#      
+#  - To clear these unsuccessful login attemps
+#      RHEL: faillock --user <username> --reset
+#      Ubuntu: pam_tally2 -u <username> --reset
 
 
 ###################################################################################################################################
@@ -140,7 +152,7 @@ echo "##########################################################################
 
 mkdir -p `dirname $OutputFile`
 
-#----------------------------------------------------------------------------------------------------------------------------------
+#==================================================================================================================================
 # Display which OS's running
 
 echo;echo "-----------------------------------------------------------------------------------------------------------"
@@ -155,8 +167,8 @@ echo $LockOutRulesFiles
 echo "-----------------------------------------------------------------------------------------------------------"
 
 
-#----------------------------------------------------------------------------------------------------------------------------------
-# Applying Lock-Out Security rules
+#==================================================================================================================================
+# Applying Lock-Out Security rules in $LockOutRulesFiles
 
 Title "Applying Lock-Out Security rules"
 for config_file in $LockOutRulesFiles; do
@@ -166,7 +178,12 @@ for config_file in $LockOutRulesFiles; do
    echo;echo "-----------------------------------------------------------------------------------------------------------"
    echo "Changing parameters in $config_file"
 
+   #----------------------------------------------------------------------------------------------------------------------------------
    # RHEL-LIKE OS CHANGES
+   # auth        required                                     pam_faillock.so preauth silent audit deny=$DENY unlock_time=$UNLOCK_TIME
+   # auth        [default=die]                                pam_faillock.so authfail audit deny=$DENY unlock_time=$UNLOCK_TIME
+   # account     required                                     pam_faillock.so
+
    if [[ $OS_ID == "rhel" ]]; then
       NewConfigLine="auth        required                                     pam_faillock.so preauth silent audit deny=$DENY unlock_time=$UNLOCK_TIME"
       echo $NewConfigLine
@@ -180,7 +197,10 @@ for config_file in $LockOutRulesFiles; do
       echo $NewConfigLine
       sed -i "/^account.*pam_unix.so/i $NewConfigLine" $config_file
 
+   #----------------------------------------------------------------------------------------------------------------------------------
    # UBUNTU-LIKE OS CHANGES
+   # auth    required                        pam_tally2.so onerr=fail deny=$DENY unlock_time=$UNLOCK_TIME audit
+
    elif [[ $OS_ID == "ubuntu" ]]; then
       NewConfigLine="auth    required                        pam_tally2.so onerr=fail deny=$DENY unlock_time=$UNLOCK_TIME audit"
       echo $NewConfigLine
@@ -195,6 +215,9 @@ for config_file in $LockOutRulesFiles; do
    echo "-----------------------------------------------------------------------------------------------------------"
 done
 
+#==================================================================================================================================
+# Summary information
+
 Title "Summary"
 echo;echo "-----------------------------------------------------------------------------------------------------------"
 echo "Modified configuration files are:"
@@ -203,6 +226,9 @@ echo
 echo "Backuped configuration files are:"
 echo $LockOutRulesFiles_Backups
 echo "-----------------------------------------------------------------------------------------------------------"
+
+#==================================================================================================================================
+# restarting (and checking) sshd service
 
 Title "systemctl restart sshd.service"
 echo;echo "-----------------------------------------------------------------------------------------------------------"
