@@ -11,6 +11,7 @@
 #
 
 WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
+ScriptList="Apply90DaysLog ApplyPasswordRules ApplySSHRootLogin"
 
 
 ###################################################################################################################################
@@ -28,6 +29,8 @@ function usage
   echo "  + You need to be root to use the script (sudo)"
   echo
   echo "  + Objective: Apply all Security Rules"
+  echo "    --> $ScriptList"
+  echo
   echo "  + -h / -? / --help: shows this usage info"
   echo
   exit 0
@@ -73,14 +76,9 @@ echo "##########################################################################
 
 ScriptDir=$(dirname $0)
 
-echo; echo "###################################################################################################################################"
-echo $ScriptDir/Apply90DaysLog; echo
-$ScriptDir/Apply90DaysLog
+for Script in $ScriptList; do
+  echo; echo "###################################################################################################################################"
+  echo $ScriptDir/$Script; echo
+  $ScriptDir/$Script
+done
 
-echo; echo "###################################################################################################################################"
-echo $ScriptDir/ApplyPasswordRules; echo
-$ScriptDir/ApplyPasswordRules
-
-echo; echo "###################################################################################################################################"
-echo $ScriptDir/ApplySSHRootLogin; echo
-$ScriptDir/ApplySSHRootLogin; echo
