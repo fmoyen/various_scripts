@@ -1,6 +1,10 @@
 #!/bin/bash
 
-UsersFile=./CAPI_users.txt
+###################################################################################################################################
+# Date: 2021/04
+# Author: Fabrice MOYEN
+# Objective: Create specific Users and Groups to a server
+# Users/Groups list given by $UsersFile
 
 # STEPS WE SHOULD DO:
 #  - check if root
@@ -12,6 +16,70 @@ UsersFile=./CAPI_users.txt
 #  - set password if user
 #  - configure sudo with or w/o password
 
+
+###################################################################################################################################
+# Parameters
+#
+
+UsersFile=./CAPI_users.txt
+
+
+###################################################################################################################################
+# Functions
+#
+
+function usage
+{
+  echo
+  echo "`basename $0` Usage:"
+  echo "-------------------------"
+  echo
+  echo "  + script to be run on the system you want to tune"
+  echo
+  echo "  + You need to be root to use the script (sudo)"
+  echo
+  echo "  + Objective: Create specific Users and Groups to a server"
+  echo
+  echo "  + -h / -? / --help: shows this usage info"
+  echo
+  echo "The list of Users/groups you want to create is given by $UsersFile"
+  echo
+  cat $UsersFile
+  echo
+  exit 0
+}
+
+
+###################################################################################################################################
+# Given parameters when launching the script
+#
+
+if [ $# -gt 0 ]
+then
+  WhatToDo=$1
+  if [ "$WhatToDo" == "-h" ] || [ "$WhatToDo" == "-?" ] || [ "$WhatToDo" == "--help" ]; then
+    usage
+  fi
+fi
+
+
+###################################################################################################################################
+# Check if root
+#
+
+if [ `whoami` != "root" ]
+then
+  echo
+  echo "You're not root. You need to execute this script with root privileges"
+  echo "Think of sudo command..."
+  echo "Exiting"
+  exit 0
+fi
+
+
+###################################################################################################################################
+# MAIN
+#
 
 n=0
 while read Line
