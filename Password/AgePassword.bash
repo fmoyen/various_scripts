@@ -1,6 +1,13 @@
 #!/bin/bash
 
-Accounts="fabrice root"
+Accounts=""
+
+if [ "$1" == "" ]; then
+  Accounts="fabrice root"
+else
+  Accounts=$*
+fi
+
 Today=`date +%Y-%m-%d`
 
 #####################################################################################
