@@ -51,8 +51,11 @@ done
        echo "----------------------"
        echo "Now:"
        chage -d $Today $i
-       chage -W 15 $i
-       chage -M 90 $i
+       # Removed the change of password validity duration and the change of warning delay
+       # => the current values are kept (so just changing the password age)
+       # It may be needed to improve that to give the choice with script parameters
+       #chage -W 15 $i
+       #chage -M 90 $i
        chage --list $i
        echo
      done
