@@ -12,6 +12,8 @@
 
 WhoAmI=`who am i| awk '{print $1}'` # "whoami" not working because of sudo
 ScriptList="Apply90DaysLog ApplyPasswordRules ApplySSHRootLogin"
+RootScriptDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+ScriptDir=$RootScriptDir/IndividualSecurityScripts
 
 
 ###################################################################################################################################
@@ -74,7 +76,6 @@ echo "$WhoAmI --> `basename $0` "
 date
 echo "###################################################################################################################################"; echo
 
-ScriptDir=$(dirname $0)
 
 for Script in $ScriptList; do
   echo; echo "###################################################################################################################################"
