@@ -212,7 +212,7 @@ do
     echo "umount)            UNmount the USBDisk volume in order to unplug the disk"
     echo
     echo "init)              Initialize the Borg Repo volume $BackupDir/BorgRepo (DANGEROUS!!)"
-    echo "exit)              Exit this Backup Tool"
+    echo "exit | x)          Exit this Backup Tool"
     echo
     echo -e "? --> \c"
 
@@ -435,10 +435,9 @@ do
 
       #------------------------------------------------------------------------------------
       # EXIT Requested
-      exit)
+      exit|x)
 	echo;echo "-----------------------------------------------"
        	echo "Exiting as requested"
-	UmountVolume "$BackupMountPoint"
 	echo
 	echo "Bye !!"
 	echo
