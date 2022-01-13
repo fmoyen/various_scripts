@@ -12,14 +12,15 @@
 option=""
 option_d=""
 option_o=""
-Delete=1
+Subdir_delete=0 # No empty sub-directory deletion by default
+Delete=1        # Files deletion by default
 
 
 
 #---------------------------------------------------------------
 # GETOPTS
 
-while getopts ":d:o:hs" option
+while getopts ":d:o:shi" option
 do
   case $option in
     d  )
@@ -28,21 +29,28 @@ do
     o  )
       option_o=$OPTARG
     ;;
+    s  )
+      Subdir_delete=1
+    ;;
     h  )
         echo
         echo "Usage: "
         echo "------ "
-        echo "   $0 -d /path/to_the/directory_to_clean"
+        echo "   $0" 
         echo
-        echo "      -o Number_of_Days : Files older than Number_of_Days (not accessed) will be deleted"
+        echo "      -d /path/to_the/directory_to_clean : (mandatory) The directory in which you want to clean the files"
         echo
-        echo "      -s (Optional)  : We will just show the files that would be deleted if no -s option (here the tool will NOT delete any file"
+        echo "      -o Number_of_Days                  : (mandatory) Files older than Number_of_Days (not accessed) will be deleted"
         echo
-        echo "      -h (Optional)  : Just to display this usage information"
+        echo "      -s                                 : (optional) With this option, the tool will delete all empty subdirectories (without, it will keep them)"
+        echo
+        echo "      -i                                 : (optional) We will just give info about the files that would/could be deleted (so the tool will NOT delete any file"
+        echo
+        echo "      -h                                 : (optional) Just to display this usage information"
         echo
         exit 2
     ;;
-    s )
+    i )
         Delete=0
     ;;
 
@@ -57,6 +65,7 @@ if [ "$option_d" == "" ] || [ "$option_o" == "" ]; then
    echo "At least one Mandatory option is missing"
    echo
    echo "MANDATORY --> -d /path/to_the/directory_to_clean -o Number_of_Days"
+   echo
    echo "More info --> $0 -h"
    echo
    echo "Exiting !"
@@ -73,37 +82,42 @@ OlderThanXDays=$option_o
 echo;echo "***************************************************************************************************"
 echo "Directory to clean : $ImagesDir"
 echo "Criteria: Files older than $OlderThanXDays days"
+if [ $Subdir_delete -eq 1 ]; then echo "We're going to DELETE the empty sub-directories (unless -i info option has been used) !"; else echo "We're NOT going to delete the empty sub-directories !"; fi
 if [ $Delete -eq 1 ]; then echo "We're going to DELETE these files !"; else echo "We're NOT going to delete anything !"; fi
 echo "***************************************************************************************************"
 
 if [ $Delete -eq 1 ]; then
-	echo "  -> Deleting FPGA binary images which modifications are older than $OlderThanXDays days..."
-	echo
-	#find $ImagesDir -type f,l -mtime +$OlderThanXDays -exec rm {} \; -print
-	find $ImagesDir -type f -mtime +$OlderThanXDays -exec rm {} \; -print
-	find $ImagesDir -type l -mtime +$OlderThanXDays -exec rm {} \; -print
+   echo;echo "***************************************************************************************************"
+   echo "  -> Deleting files which modifications are older than $OlderThanXDays days..."
+   echo
+   #find $ImagesDir -type f,l -mtime +$OlderThanXDays -exec rm {} \; -print
+   find $ImagesDir -type f -mtime +$OlderThanXDays -exec rm {} \; -print
+   find $ImagesDir -type l -mtime +$OlderThanXDays -exec rm {} \; -print
 
-	echo;echo "***************************************************************************************************"
-	echo "  -> Deleting empty directories..."
-	echo
-	for i in `ls -d $ImagesDir/*/*/ 2>/dev/null`; do
-		if [ -z "$(ls -A $i)" ]; then
-			echo $i
-			rmdir $i
-	  	fi
-	done
-	for i in `ls -d $ImagesDir/*/ 2>/dev/null`; do
-		if [ -z "$(ls -A $i)" ]; then
-			echo $i
-			rmdir $i
-	  	fi
-	done
+   if [ $Subdir_delete -eq 1 ]; then
+      echo;echo "***************************************************************************************************"
+      echo "  -> Deleting empty directories..."
+      echo
+      for i in `ls -d $ImagesDir/*/*/ 2>/dev/null`; do
+         if [ -z "$(ls -A $i)" ]; then
+            echo $i
+            rmdir $i
+         fi
+      done
+      for i in `ls -d $ImagesDir/*/ 2>/dev/null`; do
+         if [ -z "$(ls -A $i)" ]; then
+            echo $i
+            rmdir $i
+         fi
+      done
+   fi
+
 else
-	echo "  -> Showing (but not deleting) FPGA binary images which modifications are older than $OlderThanXDays days..."
-	echo
-	#find $ImagesDir -type f,l -mtime +$OlderThanXDays -exec ls -la {} \; -print
-	find $ImagesDir -type f -mtime +$OlderThanXDays -exec ls -la {} \; -print
-	find $ImagesDir -type l -mtime +$OlderThanXDays -exec ls -la {} \; -print
+   echo "  -> Showing (but not deleting) files which modifications are older than $OlderThanXDays days..."
+   echo
+   #find $ImagesDir -type f,l -mtime +$OlderThanXDays -exec ls -la {} \; -print
+   find $ImagesDir -type f -mtime +$OlderThanXDays -exec ls -la {} \; -print
+   find $ImagesDir -type l -mtime +$OlderThanXDays -exec ls -la {} \; -print
 fi
 
 echo;echo "***************************************************************************************************"
