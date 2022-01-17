@@ -1,0 +1,5 @@
+#
+# Start OpenVPN in order to get access to Power systems in ONN network
+@reboot  /root/openVPN/start_openvpn.bash > /dev/null
+0,15,30,45 * * * *  /root/openVPN/start_openvpn.bash > /dev/null
+

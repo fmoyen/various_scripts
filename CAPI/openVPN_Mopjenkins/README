@@ -1,0 +1,70 @@
+###########################################################################################################################################
+WHAT FOR ?
+
+mopjenkins (running jenkins webserver) is connected to IBM blue (9.*) network.
+=> it uses OpenVPN keys in order to connect to Power systems connected to the ONN376 private network.
+
+
+###########################################################################################################################################
+HOW ?
+
+Two openVPN keys (1 principal, 1 backup) is requested every year to the Montpellier network inrastructure team.
+A global script "start_openvpn.bash" has been developed in order to:
+  - check an openVPN connection is running or not,
+  - if not already running, try to start an openVPN connection using the principal key,
+  - validate it succeded to start an openVPN connection,
+  - if no success, try to start an openVPN connection using the backup key.
+
+This start_openvpn.bash script is automatically regularly executed thanks to root crontab (see crontab.txt file)
+
+Note: If needed, a global "stop_openvpn.bash" has been developed in order to manually stop any running openVPN connection.
+
+
+###########################################################################################################################################
+BFS MODIFICATION
+
+In order to boost the connection performance, and as mopjenkins server is connected through the Montpellier BFS infrastructure,
+some modifications has been made to the provided (by the network team) scripts and files so that the mopjenkins server will use
+the Montpellier infrastructure serveurs to openVPN connect instead of using the global IBM Corp servers.
+--> This prevents network traffic from going around the world to connect the Montpellier Jenkins server to Montpellier Power servers.
+
+start_openvpn.bash
+------------------
+
+root@mopjenkins:~# grep bfs /root/openVPN/start_openvpn.bash 
+	cd $scriptPath/${VPNPrefix}1; nohup ./start_openvpn_bfs.sh &
+		cd $scriptPath/${VPNPrefix}2; nohup ./start_openvpn_bfs.sh &
+
+
+mopjenkins_<expiration_date>_<principal_or_backup_key>/start_openvpn_bfs.sh
+---------------------------------------------------------------------------
+(example: mopjenkins_13012023_1/start_openvpn_bfs.sh
+
+root@mopjenkins:~# cat /root/openVPN/mopjenkins_13012023_1/start_openvpn_bfs.sh 
+#!/bin/bash
+openvpn --config mopjenkins_13012023_1.psscopenvpn_bfs.ovpn
+
+mopjenkins_<expiration_date>_<principal_or_backup_key>/mopjenkins_<expiration_date>_<principal_or_backup_key>.psscopenvpn_bfs.ovpn
+----------------------------------------------------------------------------------------------------------------------------------
+(example: mopjenkins_13012023_1/mopjenkins_13012023_1.psscopenvpn_bfs.ovpn
+
+root@mopjenkins:~# diff /root/openVPN/mopjenkins_13012023_1/mopjenkins_13012023_1.psscopenvpn.ovpn /root/openVPN/mopjenkins_13012023_1/mopjenkins_13012023_1.psscopenvpn_bfs.ovpn 
+12,16c12,16
+< remote 129.35.171.171 1194
+< remote 129.35.171.172 1194
+< remote 129.35.171.173 1194
+< remote 129.35.171.174 1194
+< remote 129.35.171.175 1194
+---
+> remote 10.11.5.171 1194
+> remote 10.11.5.172 1194
+> remote 10.11.5.173 1194
+> remote 10.11.5.174 1194
+> remote 10.11.5.175 1194
+
+
+###########################################################################################################################################
+WHERE
+
+Everything is implemented into root@mopjenkins:/root/openVPN
+
