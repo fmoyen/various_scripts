@@ -201,12 +201,12 @@ do
     echo
     echo "all)               Do all filesystems (`echo $AllBackupNames`) borg backups"
     echo
-    echo "borgmount)         Borg mount the volumes under /borgmnt"
-    echo "borgumount)        Borg UNmount the volumes under /borgmnt"
+    echo "borgmount)         Borg mount one chosen backup volume under /borgmnt (to restore one or several files)"
+    echo "borgumount)        Borg UNmount the backup volume from /borgmnt"
     echo
     echo "prune)             Borg prune (cleaning obsolete backups)"
     echo
-    echo "extract)           Get the command for extracting (restore) a backup"
+    echo "extract)           Get the command for fully extracting (restore) a backup"
     #echo "umount)            UNmount the USBDisk volume in order to unplug the disk"
     echo
     echo "init)              Initialize the Borg Repo volume $BackupDir/BorgRepo (DANGEROUS!!)"

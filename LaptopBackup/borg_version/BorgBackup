@@ -196,25 +196,25 @@ do
   echo "BACKUP TOOL for LINUX LAPTOP"
   echo "----------------------------"
   echo
-  echo "mount)  mount the crypt volume in order to restore/backup some files"
+  echo "mount)           Mount the crypt volume in order to restore/backup some files"
   echo
-  echo "list)   list the available backups"
-  echo "detail)   list the files included inside a backup"
+  echo "list)            List the available backups"
+  echo "detail)          List the files included inside a backup"
   echo
-  echo "home)   do the $HomeFolderToBackup borg backup"
-  echo "root)   do the / (root) borg backup"
+  echo "home)            Do the $HomeFolderToBackup borg backup"
+  echo "root)            Do the / (root) borg backup"
   echo
-  echo "borgmount) borg mount the volumes under /borgmnt"
-  echo "borgumount) borg UNmount the volumes under /borgmnt"
+  echo "borgmount)       Borg mount one chosen backup volume under /borgmnt (to restore one or several files)"
+  echo "borgumount)      Borg UNmount the backup volume from /borgmnt"
   echo
-  echo "homeprune) borg prune (cleaning obsolete backups) of $HomeFolderToBackup"
-  echo "rootprune) borg prune (cleaning obsolete backups) of / (root)"
+  echo "homeprune)       Borg prune (cleaning obsolete backups) of $HomeFolderToBackup"
+  echo "rootprune)       Borg prune (cleaning obsolete backups) of / (root)"
   echo
-  echo "extract) get extract (restore) command of a backup"
+  echo "extract)         Get the command for fully extracting (restore) a backup"
   echo
-  echo "umount) UNmount the crypt volume in order to unplug the disk"
-  echo "reset)  reset the Crypted volume $CryptedLuksFile (DANGEROUS!!)"
-  echo "exit)   Exit this Backup Tool"
+  echo "umount)          UNmount the crypt volume in order to unplug the disk"
+  echo "reset)           Reset the Crypted volume $CryptedLuksFile (DANGEROUS!!)"
+  echo "exit | x)        Exit this Backup Tool"
   echo
   echo -e "? --> \c"
 
@@ -527,7 +527,7 @@ do
     #------------------------------------------------------------------------------------
     # EXIT Requested
 
-    exit)
+    exit|x)
      echo "Exiting as requested"
      UmountVolume "$BackupMountPoint"
      CloseLuksVolume $LuksDev
