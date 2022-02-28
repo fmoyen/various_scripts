@@ -9,7 +9,7 @@
 ###################################################################################################################################
 # PARAMETERS
 #
-Hosts=`cat ../../ipmi/PasswordFile | awk '{print $1}'`
+Hosts=`cat ../../../ipmi/PasswordFile | awk '{print $1}'`
 eval ListDir=~`whoami`/CAPI/SecurityToolsOutput/ExistingUsersList/LISTS # generic $HOME is not OK to use as this script is run with sudo (so $HOME=/root)
 
 
