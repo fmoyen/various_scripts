@@ -244,10 +244,11 @@ do
     # all
 
     all)
-      ServersList=`cat $PasswordFile | awk '{if ($5 ~ /power/) {print $1}}'`
+      #ServersList=`cat $PasswordFile | awk '{if ($5 ~ /power/) {print $1}}'`
+      ServersList=`cat $PasswordFile | awk '{print $1}'`
       echo
-      echo "List of Power servers:"
-      echo "---------------------"
+      echo "List of servers:"
+      echo "----------------"
       echo $ServersList
       echo
       echo "Are you OK with this list (just type ENTER) or do you want to provide your list ?:"
