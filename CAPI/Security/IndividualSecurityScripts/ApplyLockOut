@@ -8,7 +8,7 @@
 # STEPS WE SHOULD DO:
 #  - check if root
 #  - check the OS running
-#  - Configure account lock-out rules (RHEL: /etc/pam.d/password-auth & /etc/pam.d/system-auth, Ubuntu: /etc/pam.d/common-auth)
+#  - Configure account lock-out rules (RHEL: /etc/pam.d/password-auth & /etc/pam.d/system-auth, Ubuntu: /etc/pam.d/common-auth & /etc/pam.d/common-account)
 #  - restart sshd daemon/service
 
 # RULES to follow:
@@ -52,7 +52,7 @@ if [[ $OS_ID == "rhel" ]] || [[ $OS_ID == "fedora" ]] || [[ $OS_ID == "centos" ]
    OS_ID="rhel"
 
 elif [[ $OS_ID == "ubuntu" ]] || [[ $OS_ID == "debian" ]]; then
-   LockOutRulesFiles="/etc/pam.d/common-auth"
+   LockOutRulesFiles="/etc/pam.d/common-auth /etc/pam.d/common-account"
    #FabDebug
    #LockOutRulesFiles="$MyHomeDir/fabtest/common-auth"
    OS_ID="ubuntu"
@@ -205,6 +205,11 @@ for config_file in $LockOutRulesFiles; do
       NewConfigLine="auth    required                        pam_tally2.so onerr=fail deny=$DENY unlock_time=$UNLOCK_TIME audit"
       echo $NewConfigLine
       sed -i "/^auth.*pam_unix.so/i $NewConfigLine" $config_file
+
+      NewConfigLine="account required                        pam_tally2.so"
+      echo $NewConfigLine
+      sed -i "/^account.*pam_unix.so/i $NewConfigLine" $config_file
+
    fi
    echo "-----------------------------------------------------------------------------------------------------------"
 
