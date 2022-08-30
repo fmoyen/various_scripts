@@ -16,7 +16,7 @@ if [ $MyAccount == "fabrice" ]; then MyAccount="fmoyen"; fi
 ShowCMD=no
 SSHOptions='-o "StrictHostKeyChecking no" -t' # -t in order to allocate terminal and allow commands such as "who am i"
 ScriptDir="`dirname "$(readlink "$0")"`" # following only the first link found, not all links
-PasswordFile=$ScriptDir/PasswordFile # Warning: case with spaces not working for the moment
+SystemsFile=$ScriptDir/SystemsFile # Warning: case with spaces not working for the moment
 
 #####################################################################################
 # FUNCTIONS
@@ -51,7 +51,7 @@ do
   echo $Server |tr '[:lower:]' '[:upper:]'
   echo
   echo "Showing Commands WITH passwords: $ShowCMD"
-  echo "Password File: $PasswordFile"
+  echo "Systems File: $SystemsFile"
   echo
   echo "My Account (for linux & all options): $MyAccount"
   echo
@@ -91,8 +91,8 @@ do
       echo
       echo "List of available servers:"
       echo "-------------------------"
-      cut -d" " -f1 $PasswordFile
-      ServersList=`cut -d" " -f1 $PasswordFile`
+      cut -d" " -f1 $SystemsFile
+      ServersList=`cut -d" " -f1 $SystemsFile`
       echo
       echo "Which Server do you want to connect: "
       echo "(you may only give just some distinctive letters of the server name)"
@@ -104,9 +104,9 @@ do
       done
 
 
-      ipmiServer=`grep $Server $PasswordFile | cut -d" " -f2`
-      ipmiUser=`grep $Server $PasswordFile | cut -d" " -f3`
-      ipmiPassword=`grep $Server $PasswordFile | cut -d" " -f4`
+      ipmiServer=`grep $Server $SystemsFile | cut -d" " -f2`
+      ipmiUser=`grep $Server $SystemsFile | cut -d" " -f3`
+      ipmiPassword=`grep $Server $SystemsFile | cut -d" " -f4`
 
     ;;
 
@@ -244,8 +244,8 @@ do
     # all
 
     all)
-      #ServersList=`cat $PasswordFile | awk '{if ($5 ~ /power/) {print $1}}'`
-      ServersList=`cat $PasswordFile | awk '{print $1}'`
+      #ServersList=`cat $SystemsFile | awk '{if ($5 ~ /power/) {print $1}}'`
+      ServersList=`cat $SystemsFile | awk '{print $1}'`
       echo
       echo "List of servers:"
       echo "----------------"
@@ -281,7 +281,7 @@ do
     # ALL power status
 
     allstatus)
-      ServersList=`cat $PasswordFile | awk '{print $1}'`
+      ServersList=`cat $SystemsFile | awk '{print $1}'`
       echo
       echo "List of servers:"
       echo "----------------"
@@ -294,9 +294,9 @@ do
       echo
 
       for ServerLoop in $ServersList; do
-        ipmiServerLoop=`grep $ServerLoop $PasswordFile | cut -d" " -f2`
-        ipmiUserLoop=`grep $ServerLoop $PasswordFile | cut -d" " -f3`
-        ipmiPasswordLoop=`grep $ServerLoop $PasswordFile | cut -d" " -f4`
+        ipmiServerLoop=`grep $ServerLoop $SystemsFile | cut -d" " -f2`
+        ipmiUserLoop=`grep $ServerLoop $SystemsFile | cut -d" " -f3`
+        ipmiPasswordLoop=`grep $ServerLoop $SystemsFile | cut -d" " -f4`
         RawCMD='ipmitool -I lanplus -H ${ipmiServerLoop} -U $ipmiUserLoop -P $ipmiPasswordLoop power status'
         CMD=`eval echo $RawCMD`
 

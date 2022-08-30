@@ -1,2 +1,0 @@
-# name		UID	GID	password	local		Additional group	sudo passwd	docker
-zoualami	1005	1005	zouhir		capiteam	capiteam		password	docker
