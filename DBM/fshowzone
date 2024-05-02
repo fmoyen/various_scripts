@@ -1,0 +1,70 @@
+#!/bin/bash
+#################################################################################
+# Author: Fabrice MOYEN
+# Date: 2023 February
+# Objective: Display SAN Zones relative to a project
+#################################################################################
+
+#################################################################################
+# VARIABLES
+
+Switches=(cancer4 cancer5)
+
+#################################################################################
+# FUNCTIONS
+
+usage () {
+echo
+  echo "Usage:"
+  echo "------"
+  echo "$0 [-p project] [-s \"list of switches\"]"
+  echo "$0 -h"
+  echo
+  echo "Examples:"
+  echo "---------"
+  echo "$0  --> zones for every projects on every DBM SAN switches"
+  echo "$0 -p WUR  --> zones only for WUR project on every DBM SAN switches"
+  echo "$0 -s cancer5 -p WUR  --> WUR project's zones only on cancer5 switch"
+  echo "$0 -p WUR -s \"cancer4 cancer5\"  --> WUR project's zones on cancer4 & cancer5 switches"
+  echo
+  exit 1
+}
+
+#################################################################################
+# SCRIPT PARAMETERS
+
+while getopts ":p:s:h" opt
+do
+  case $opt in
+    p) project=${OPTARG} ;;
+    s) Switches=(${OPTARG}) ;;
+    h) usage ;;
+    \? ) echo "$OPTARG: invalid option"; usage ;;
+  esac
+done
+
+if [ -n "$project" ]; then
+  GrepOrNot="| grep -ip $project"
+else
+  GrepOrNot=""
+fi
+
+#################################################################################
+# MAIN
+
+NbSwitches=${#Switches[@]}
+i=0
+while [ $i -lt $NbSwitches ]; do
+  switch=${Switches[$i]}
+  Switch=$(echo $switch | sed 's/\([a-z]\)\([a-zA-Z0-9]*\)/\u\1\2/g')
+  CMD="ssh $switch show zone $GrepOrNot"
+
+  echo
+  echo "#####################################################"
+  echo $CMD
+
+  eval $CMD
+
+  i=`expr $i + 1` 
+done
+

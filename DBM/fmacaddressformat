@@ -1,0 +1,58 @@
+#!/bin/bash
+#################################################################################
+# Author: Fabrice MOYEN
+# Date: 2023 February
+# Objective: Format MAC address given it the form "865D2532500C" (lscfg -vl ent0)
+#################################################################################
+
+#################################################################################
+# VARIABLES
+
+
+#################################################################################
+# FUNCTIONS
+
+usage () {
+echo
+  echo "Usage:"
+  echo "------"
+  echo "$0 [-m MacAddress]"
+  echo "$0 -h"
+  echo
+  echo "Examples:"
+  echo "---------"
+  echo "$0 -m 865D2532500C"
+  echo
+  exit 1
+}
+
+#################################################################################
+# SCRIPT PARAMETERS
+
+while getopts ":m:h" opt
+do
+  case $opt in
+    m) macaddr=${OPTARG} ;;
+    h) usage ;;
+    \? ) echo "$OPTARG: invalid option"; usage ;;
+  esac
+done
+
+
+#################################################################################
+# MAIN
+
+lowermac=$(echo $macaddr | tr [A-Z] [a-z])
+
+# -
+dashmac=$(echo $lowermac | sed 's/.\{2\}/&:/g')
+dashmac=$(echo $dashmac | echo ${dashmac:0:-1})
+
+# :
+colonmac=$(echo $lowermac | sed 's/.\{2\}/&-/g')
+colonmac=$(echo $colonmac | echo ${colonmac:0:-1})
+
+echo
+echo $dashmac
+echo $colonmac
+echo

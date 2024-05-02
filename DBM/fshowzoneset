@@ -1,0 +1,81 @@
+#!/bin/bash
+#################################################################################
+# Author: Fabrice MOYEN
+# Date: 2023 February
+# Objective: Display SAN ZoneSets relative to a project
+#################################################################################
+
+#################################################################################
+# VARIABLES
+
+Switches=(cancer4 cancer5)
+
+#################################################################################
+# FUNCTIONS
+
+usage () {
+echo
+  echo "Usage:"
+  echo "------"
+  echo "$0 [-n Zoneset_name] [-v VSAN] [-s \"list of switches\"] [-a]"
+  echo "$0 -h"
+  echo
+  echo "Examples:"
+  echo "---------"
+  echo "$0  --> zonesets for every projects on every DBM SAN switches"
+  echo "$0 -n Zoneset1  --> only Zoneset1 zoneset on every DBM SAN switches"
+  echo "$0 -s 72  --> only VSAN 72 zonesets on every DBM SAN switches"
+  echo "$0 -a  --> only active zonesets on every DBM SAN switches"
+  echo "$0 -s cancer5   --> only VSAN 72 zonsets only on cancer5 switch"
+  echo "$0 -s \"cancer4 cancer5\"  --> zonesets on cancer4 & cancer5 switches"
+  echo
+  exit 1
+}
+
+#################################################################################
+# SCRIPT PARAMETERS
+
+while getopts ":n:v:s:ah" opt
+do
+  case $opt in
+    n) ZonesetName=${OPTARG} ;;
+    v) Vsan=${OPTARG} ;;
+    s) Switches=(${OPTARG}) ;;
+    a) ActiveOrNot="active" ;;
+    h) usage ;;
+    \? ) echo "$OPTARG: invalid option"; usage ;;
+  esac
+done
+
+if [ -n "$ZonesetName" ]; then
+  NameOrNot="name $ZonesetName"
+else
+  NameOrNot=""
+fi
+
+if [ -n "$Vsan" ]; then
+  VsanOrNot="vsan $Vsan"
+else
+  VsanOrNot=""
+fi
+
+
+#################################################################################
+# MAIN
+
+NbSwitches=${#Switches[@]}
+i=0
+while [ $i -lt $NbSwitches ]; do
+  switch=${Switches[$i]}
+  Switch=$(echo $switch | sed 's/\([a-z]\)\([a-zA-Z0-9]*\)/\u\1\2/g')
+  CMD="ssh $switch show zoneset $NameOrNot $ActiveOrNot $VsanOrNot"
+
+  echo
+  echo "#####################################################"
+  echo $CMD
+
+  eval $CMD
+
+  i=`expr $i + 1` 
+done
+

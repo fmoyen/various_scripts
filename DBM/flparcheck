@@ -1,0 +1,195 @@
+#!/bin/bash
+#################################################################################
+# Author: Fabrice MOYEN
+# Date: 2024 April
+# Objective: Check whether LPARs known by DBM are really present on a system
+#            (and which system)
+#################################################################################
+
+#################################################################################
+# VARIABLES
+
+TempDir=/tmp
+ResultDir=/tmp
+LPARonSystemFiles=""
+
+DBM_lparnames=$TempDir/flparcheck_dbm_lparnames.txt
+DBM_projectnames=$TempDir/flparcheck_dbm_projectnames.txt
+DBM_HMCSystems=$TempDir/flparcheck_dbm_hmcsystems.txt
+
+LPARCheck=$TempDir/flparcheck_check_lpars.txt
+LPARCheckConclusion=$ResultDir/flparcheck_lpars_alive.txt
+ProjectCheckConclusion=$ResultDir/flparcheck_project_alive.txt
+FinalResult=$ResultDir/flparcheck_status.out
+
+> $DBM_lparnames
+> $DBM_projectnames
+> $DBM_HMCSystems
+> $LPARCheck
+> $LPARCheckConclusion
+> $ProjectCheckConclusion
+> $FinalResult 
+
+TempFile=$TempDir/flparcheck_temp.txt
+> $TempFile
+
+TrapFilesList="$DBM_lparnames $DBM_projectnames $DBM_HMCSystems $TempFile"
+trap 'rm $TrapFilesList' EXIT
+
+Systems_HSCL0237="" # Systems with No connection Status
+
+
+#################################################################################
+# FUNCTIONS
+
+usage () {
+echo
+  echo "Usage:"
+  echo "------"
+  echo "$0 [-p project] [-s \"list of switches\"]"
+  echo "$0 -h"
+  echo
+  echo "Examples:"
+  echo "---------"
+  echo "$0  --> zones for every projects on every DBM SAN switches"
+  echo "$0 -p WUR  --> zones only for WUR project on every DBM SAN switches"
+  echo "$0 -s cancer5 -p WUR  --> WUR project's zones only on cancer5 switch"
+  echo "$0 -p WUR -s \"cancer4 cancer5\"  --> WUR project's zones on cancer4 & cancer5 switches"
+  echo
+  exit 1
+}
+
+#################################################################################
+# SCRIPT PARAMETERS
+
+while getopts ":p:s:h" opt
+do
+  case $opt in
+    p) project=${OPTARG} ;;
+    s) Switches=(${OPTARG}) ;;
+    h) usage ;;
+    \? ) echo "$OPTARG: invalid option"; usage ;;
+  esac
+done
+
+if [ -n "$project" ]; then
+  GrepOrNot="| grep -ip $project"
+else
+  GrepOrNot=""
+fi
+
+#################################################################################
+# MAIN
+
+#================================================================================
+# Collecting the information
+
+echo; echo "========================================================================================================"
+echo "Collecting informations from DBM DB2 database"
+echo
+
+db2 connect to DBMDB
+
+db2 "select LPAR_NAME, PROJECT_ID from DBM_PROJECT_LPAR" | sed '1,3d' | grep -v "record(s)" > $DBM_lparnames
+grep -v '^$' $DBM_lparnames > $TempFile && cat $TempFile > $DBM_lparnames  # To delete empty lines
+
+db2 "select PROJECT_NAME, PROJECT_ID from DBM_PROJECT" | sed '1,3d' | grep -v "record(s)" > $DBM_projectnames
+grep -v '^$' $DBM_projectnames > $TempFile && cat $TempFile > $DBM_projectnames  # To delete empty lines
+
+db2 "select SYSTEM_NAME, HMC_IP from DBM_SYSTEM" | sed '1,3d' | grep -v "record(s)" > $DBM_HMCSystems
+grep -v '^$' $DBM_HMCSystems > $TempFile && cat $TempFile > $DBM_HMCSystems  # To delete empty lines
+
+echo; echo "========================================================================================================"
+echo "Collecting informations from HMCs"
+
+while IFS= read -r -u10 line; do
+  system=`echo $line | awk '{print $1}'`
+  hmc_ip=`echo $line | awk '{print $2}'`
+
+  if [[ "$system" != "" ]]; then
+    echo "  --> ${system}"
+    ssh hscroot@${hmc_ip} "lssyscfg -r lpar -m $system -F name, state" > $TempDir/flparcheck_$system.txt
+
+    grep -q "HSCL0237" $TempDir/flparcheck_$system.txt && \
+      Systems_HSCL0237="$Systems_HSCL0237 $system" && \
+      rm -f $TempDir/flparcheck_$system.txt  && \
+      echo "      Warning HSCL0237 (No Connection State)"  # when the managed system is in the No Connection state
+
+    if [[ -f $TempDir/flparcheck_$system.txt ]]; then
+      LPARonSystemFiles="$LPARonSystemFiles $TempDir/flparcheck_$system.txt"
+      TrapFilesList="$TrapFilesList $TempDir/flparcheck_$system.txt"
+    fi
+
+  fi
+
+done 10< $DBM_HMCSystems
+
+
+#================================================================================
+# Crossing the info to find the still active LPARS/PROJECTS
+
+echo; echo "========================================================================================================"
+echo "Cross-referencing information to find the DBM LPARS/PROJECTS that still exist on a system"
+echo -n "..."
+
+while IFS= read -r -u10 line; do
+  lparname=`echo $line | awk '{print $1}'`
+  project_id=`echo $line | awk '{print $2}'`
+  project_name=`grep " ${project_id}\$" $DBM_projectnames | awk -F"    " '{print $1}'`
+ 
+  grep "^${lparname}," $LPARonSystemFiles >> $LPARCheck
+  lpar_found=`echo $?`
+  
+  if [[ $lpar_found -eq 0 ]]; then  # The LPAR has been found on a system
+    system=`grep "${lparname}," $LPARCheck | awk -F".txt" '{print $1}' | awk -F"_" '{print $2}'`
+    lparstatus=`grep "${lparname}," $LPARCheck | awk -F"," '{print $2}'`
+    echo "Lparname= $lparname , System= $system , Status= $lparstatus | Project= $project_id , $project_name" >> $LPARCheckConclusion
+    grep -q "Project= $project_id ," $ProjectCheckConclusion || echo "Project= $project_id , $project_name" >> $ProjectCheckConclusion
+  fi
+
+done 10< $DBM_lparnames
+
+TrapFilesList="$TrapFilesList $LPARCheck"
+echo " done"; echo
+
+#================================================================================
+# Creating the file with conclusions
+
+echo; echo "========================================================================================================"
+echo "The conclusions are available in $FinalResult"
+
+echo
+echo "WARNING: The following systems were impossible to join/analyse :"
+echo "----------------------------------------------------------------"
+echo "(HSCL0237: the managed system in the No Connection state)"
+for i in $Systems_HSCL0237; do
+  echo "  - $i"
+done
+echo
+echo "List of DBM Projects still alive :"
+echo "----------------------------------"
+cat $ProjectCheckConclusion
+
+echo "==============================================================================" >> $FinalResult
+date >> $FinalResult
+echo >> $FinalResult
+echo "WARNING: The following systems were impossible to join/analyse :" >> $FinalResult
+echo "----------------------------------------------------------------" >> $FinalResult
+echo "(HSCL0237: the managed system in the No Connection state)" >> $FinalResult
+for i in $Systems_HSCL0237; do
+  echo "  - $i" >> $FinalResult
+done
+echo "==============================================================================" >> $FinalResult
+echo >> $FinalResult
+
+while IFS= read -r -u10 line; do
+  project_id=`echo $line | awk -F"= " '{print $2}' | awk -F " ," '{print $1}'`
+
+  echo >> $FinalResult; echo "##############################################################################" >> $FinalResult
+  echo $line >> $FinalResult
+  echo >> $FinalResult
+
+  grep "Project= $project_id ," $LPARCheckConclusion | awk -F" |" '{print $1}' >> $FinalResult
+done 10< $ProjectCheckConclusion
+
+echo

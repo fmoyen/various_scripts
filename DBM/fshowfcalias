@@ -1,0 +1,86 @@
+#!/bin/bash
+#################################################################################
+# Author: Fabrice MOYEN
+# Date: 2023 February
+# Objective: Display SAN FCAlias
+#################################################################################
+
+#################################################################################
+# VARIABLES
+
+Switches=(cancer4 cancer5)
+
+#################################################################################
+# FUNCTIONS
+
+usage () {
+echo
+  echo "Usage:"
+  echo "------"
+  echo "$0 [-n FCAlias_name] [-p project] [-v VSAN] [-s \"list of switches\"]"
+  echo "$0 -h"
+  echo
+  echo "Examples:"
+  echo "---------"
+  echo "$0  --> every fcaliases on every DBM SAN switches"
+  echo "$0 -n P_DBM_prod_F2  --> only P_DBM_prod_F2 FCAlias on every DBM SAN switches"
+  echo "$0 -p WUR  --> fcalias only for WUR project (FCAliases names contain WUR) on every DBM SAN switches"
+  echo "$0 -s cancer5 -n P_DBM_prod_F2  --> P_DBM_prod_F2 FCAlias on cancer5 switch"
+  echo "$0 -s 72  --> only VSAN 72 on every DBM SAN switches"
+  echo "$0 -n P_DBM_prod_F -s \"cancer4 cancer5\"  --> P_DBM_prod_F2 FCAlias on cancer4 & cancer5 switches"
+  echo
+  exit 1
+}
+
+#################################################################################
+# SCRIPT PARAMETERS
+
+while getopts ":n:p:v:s:h" opt
+do
+  case $opt in
+    n) FCaliasName=${OPTARG} ;;
+    p) project=${OPTARG} ;;
+    v) Vsan=${OPTARG} ;;
+    s) Switches=(${OPTARG}) ;;
+    h) usage ;;
+    \? ) echo "$OPTARG: invalid option"; usage ;;
+  esac
+done
+
+if [ -n "$FCaliasName" ]; then
+  NameOrNot="name $FCaliasName"
+else
+  NameOrNot=""
+fi
+
+if [ -n "$project" ]; then
+  GrepOrNot="| grep -ip $project"
+else
+  GrepOrNot=""
+fi
+
+if [ -n "$Vsan" ]; then
+  VsanOrNot="vsan $Vsan"
+else
+  VsanOrNot=""
+fi
+
+#################################################################################
+# MAIN
+
+NbSwitches=${#Switches[@]}
+i=0
+while [ $i -lt $NbSwitches ]; do
+  switch=${Switches[$i]}
+  Switch=$(echo $switch | sed 's/\([a-z]\)\([a-zA-Z0-9]*\)/\u\1\2/g')
+  CMD="ssh $switch show fcalias $NameOrNot $VsanOrNot $GrepOrNot"
+
+  echo
+  echo "#####################################################"
+  echo $CMD
+
+  eval $CMD
+
+  i=`expr $i + 1` 
+done
+
