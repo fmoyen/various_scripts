@@ -8,9 +8,8 @@ NoArgs="true"
 AllActions="true"
 HMC_IP_Set="false"
 HMC_Pass_Set="false"
-HMC_Server_Set="false"
 HMC_CMD="false"
-HMC_Firmware_Set="false"
+HMC_LPAR_Set="false"
 HMC_Details_Set="false"
 
 
@@ -22,12 +21,12 @@ usage()
    echo
    echo "Usage: "
    echo "------ "
-   echo "   $0 -h HMC_IP [-p HMC_PASSWORD] [-c] [-s] [-d]"
+   echo "   $0 -h HMC_IP [-p HMC_PASSWORD] [-c] [-l] [-d]"
    echo "   $0 -u  # to get this usage information"
    echo
    echo "   By default, $0 gives all the information"
    echo "   -c: gives the commands used to get the info"
-   echo "   -s: gives only the servers (frames) name and architecture"
+   echo "   -l: gives only the lpars name per frame"
    echo "   -f: gives only the servers (frames) firmware level"
    echo "   -d: gives the servers hardware configuration details (CPU/MEM)"
    echo
@@ -47,7 +46,7 @@ action()
 ##################################################################################################
 # CHECK THE ARGUMENTS
 
-while getopts ":h:p:ucsfd" option
+while getopts ":h:p:uclsfd" option
 do
   case $option in
     h)
@@ -61,15 +60,17 @@ do
     c)
       HMC_CMD="true"
     ;;
-    s)
-      HMC_Server_Set="true"
+    l)
+      HMC_LPAR_Set="true"
       AllActions="false"
     ;;
     f)
+      HMC_Firmware=$OPTARG
       HMC_Firmware_Set="true"
       AllActions="false"
     ;;
     d)
+      HMC_Details=$OPTARG
       HMC_Details_Set="true"
       AllActions="false"
     ;;
@@ -102,24 +103,18 @@ echo "HMC $HMC_IP"
 echo "#####################################################################################################"
 echo
 
-if [[ $HMC_Server_Set == "true" ]] || [[ $AllActions == "true" ]]; then
-  TITLE="FRAMES"
-  CMD='for Frame in `lssyscfg -r sys -F name`; do echo -e "$Frame: \c"; lssyscfg -m $Frame -r sys -F type_model; echo -e "  \c"; lssyscfg -m $Frame -r sys -F lpar_proc_compat_modes | sed s/,/\\n/g | tail -1 | sed s/\"//g; done'
-  action
-fi
-
-if [[ $HMC_Firmware_Set == "true" ]] || [[ $AllActions == "true" ]]; then
-  TITLE="FIRMWARE LEVEL"
-  CMD='for Frame in `lssyscfg -r sys -F name`; do echo -e "$Frame: \c"; lslic -m $Frame -F ecnumber activated_level; done'
+if [[ $HMC_LPAR_Set == "true" ]] || [[ $AllActions == "true" ]]; then
+  TITLE="LPARs NAME"
+  CMD='for Frame in `lssyscfg -r sys -F name`; do echo "$Frame:"; echo "-------"; lssyscfg -r lpar -m $Frame -F name; echo; done'
   action
 fi
 
 if [[ $HMC_Details_Set == "true" ]] || [[ $AllActions == "true" ]]; then
-  TITLE="PROCESSORS NUMBER"
-  CMD='for Frame in `lssyscfg -r sys -F name`; do echo -e "$Frame: \c"; lshwres -m $Frame -r proc --level sys -F configurable_sys_proc_units; done'
+	TITLE="PROCESSORS COUNT (curr_proc_mode, curr_min_procs, curr_procs,curr_max_procs)"
+  CMD='for Frame in `lssyscfg -r sys -F name`; do echo "$Frame:"; echo "-------"; lshwres -m $Frame -r proc --level lpar -F lpar_name,curr_proc_mode,curr_min_procs,curr_procs,curr_max_procs; echo; done'
   action
 
-  TITLE="MEMORY SIZE"
-  CMD='for Frame in `lssyscfg -r sys -F name`; do echo -e "$Frame: \c"; lshwres -m $Frame -r mem --level sys -F configurable_sys_mem; done'
+  TITLE="MEMORY SIZE (curr_min_mem, curr_mem, curr_max_mem)"
+  CMD='for Frame in `lssyscfg -r sys -F name`; do echo "$Frame:"; echo "-------"; lshwres -m $Frame -r mem --level lpar -F lpar_name,curr_min_mem,curr_mem,curr_max_mem; echo; done'
   action
 fi
