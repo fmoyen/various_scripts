@@ -90,3 +90,7 @@ echo
   CMD='lshmc -V'
   action
 
+  TITLE="Network Configuration"
+  CMD='lshmc -n -F hostname,ipaddr,networkmask'
+  action
+
