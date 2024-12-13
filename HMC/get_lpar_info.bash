@@ -10,6 +10,7 @@ HMC_IP_Set="false"
 HMC_Pass_Set="false"
 HMC_CMD="false"
 HMC_LPAR_Set="false"
+HMC_Status_Set="false"
 HMC_Details_Set="false"
 
 
@@ -27,7 +28,7 @@ usage()
    echo "   By default, $0 gives all the information"
    echo "   -c: gives the commands used to get the info"
    echo "   -l: gives only the lpars name per frame"
-   echo "   -f: gives only the servers (frames) firmware level"
+   echo "   -s: gives only the status of the lpars"
    echo "   -d: gives the servers hardware configuration details (CPU/MEM)"
    echo
 }
@@ -64,13 +65,11 @@ do
       HMC_LPAR_Set="true"
       AllActions="false"
     ;;
-    f)
-      HMC_Firmware=$OPTARG
-      HMC_Firmware_Set="true"
+    s)
+      HMC_Status_Set="true"
       AllActions="false"
     ;;
     d)
-      HMC_Details=$OPTARG
       HMC_Details_Set="true"
       AllActions="false"
     ;;
@@ -106,6 +105,12 @@ echo
 if [[ $HMC_LPAR_Set == "true" ]] || [[ $AllActions == "true" ]]; then
   TITLE="LPARs NAME"
   CMD='for Frame in `lssyscfg -r sys -F name`; do echo "$Frame:"; echo "-------"; lssyscfg -r lpar -m $Frame -F name; echo; done'
+  action
+fi
+
+if [[ $HMC_Status_Set == "true" ]] || [[ $AllActions == "true" ]]; then
+  TITLE="LPARs STATUS"
+  CMD='for Frame in `lssyscfg -r sys -F name`; do echo "$Frame:"; echo "-------"; lssyscfg -r lpar -m $Frame -F name, state; echo; done'
   action
 fi
 
