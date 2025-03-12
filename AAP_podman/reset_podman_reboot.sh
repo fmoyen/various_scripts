@@ -3,6 +3,9 @@
 # Delete the podman files in /tmp that shouldn't survive after a reboot
 # and which will prevent podman to work properly.
 
+# Delete also the ansible /tmp files/directories
+# and which may prevent AAP to work properly
+
 #================================================================================
 # Check if root user
 
