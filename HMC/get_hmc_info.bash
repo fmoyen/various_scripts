@@ -19,13 +19,13 @@ usage()
    echo
    echo "Usage: "
    echo "------ "
-   echo "   $0 -h HMC_IP [-p HMC_PASSWORD] [-s] [-d]"
+   echo "   $0 -h HMC_IP [-p HMC_PASSWORD] [-c]"
    echo "   $0 -u  # to get this usage information"
    echo
    echo "   By default, $0 gives all the information"
-   echo "   -s: gives only the servers (frames) name and architecture"
-   echo "   -f: gives only the servers (frames) firmware level"
-   echo "   -d: gives the servers hardware configuration details (CPU/MEM)"
+   echo "   -c: gives the commands used to get the info from the HMC"
+   echo
+   echo "   (if you don't want to give the HMC password in the command line, please use the SSHPASS environment variable)"
    echo
 }
 

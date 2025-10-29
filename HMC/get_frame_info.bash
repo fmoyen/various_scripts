@@ -31,6 +31,8 @@ usage()
    echo "   -f: gives only the servers (frames) firmware level"
    echo "   -d: gives the servers hardware configuration details (CPU/MEM)"
    echo
+   echo "   (if you don't want to give the HMC password in the command line, please use the SSHPASS environment variable)"
+   echo
 }
 
 action()
