@@ -1,0 +1,14 @@
+####################################################################################################################
+create a bash script named gather_linux_infos.bash that gathers platform and software information by using for example the following commands:
+  platform:
+    cat /etc/os-release
+    uname -a
+    free -h | grep Mem | awk '{print $2}'
+  software:
+    echo $SHELL
+    node -v
+    node -p "process.platform"
+    node -p "process.arch"
+
+####################################################################################################################
+The script gather_linux_infos.bash gathers platform and software information  on the linux system it's running. Everytime this script uses a command to gather info, make the script display this command before displaying the output of this command.
