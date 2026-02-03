@@ -37,6 +37,13 @@ display_separator() {
     echo "======================================================="
 }
 
+# Function to execute and display command
+exec_and_display() {
+    local cmd="$1"
+    echo "  Command: $cmd"
+    eval "$cmd"
+}
+
 # Function to gather platform information
 gather_platform_info() {
     echo
@@ -48,7 +55,7 @@ gather_platform_info() {
     echo
     echo "OS Release:"
     if [ -f /etc/os-release ]; then
-        cat /etc/os-release
+        exec_and_display "cat /etc/os-release"
     else
         echo "  /etc/os-release not found"
     fi
@@ -56,20 +63,21 @@ gather_platform_info() {
     # Kernel Information
     echo
     echo "Kernel:"
-    uname -a
+    exec_and_display "uname -a"
     
     # Memory Information
     echo
     echo "Total Memory:"
-    free -h | grep Mem | awk '{print "  " $2}'
+    exec_and_display "free -h | grep Mem | awk '{print \"  \" \$2}'"
     
     # CPU Cores
     echo
     echo "CPU Cores:"
     if command -v nproc >/dev/null 2>&1; then
-        echo "  $(nproc) cores"
+        exec_and_display "nproc"
+        echo "  cores"
     elif command -v lscpu >/dev/null 2>&1; then
-        lscpu | grep "^CPU(s):" | awk '{print "  " $2 " cores"}'
+        exec_and_display "lscpu | grep \"^CPU(s):\" | awk '{print \"  \" \$2 \" cores\"}'"
     else
         echo "  Unable to determine CPU cores"
     fi
@@ -77,15 +85,15 @@ gather_platform_info() {
     # Disk Space (root partition)
     echo
     echo "Disk Space (root partition):"
-    df -h / | tail -n 1 | awk '{print "  Size: " $2 ", Used: " $3 ", Available: " $4 ", Use%: " $5}'
+    exec_and_display "df -h / | tail -n 1 | awk '{print \"  Size: \" \$2 \", Used: \" \$3 \", Available: \" \$4 \", Use%: \" \$5}'"
     
     # System Uptime
     echo
     echo "System Uptime:"
     if command -v uptime >/dev/null 2>&1; then
-        uptime -p | sed 's/^/  /'
+        exec_and_display "uptime -p | sed 's/^/  /'"
     else
-        uptime | sed 's/^/  /'
+        exec_and_display "uptime | sed 's/^/  /'"
     fi
 }
 
@@ -105,15 +113,15 @@ gather_software_info() {
     echo
     if command -v node >/dev/null 2>&1; then
         echo "Node.js Version:"
-        node -v | sed 's/^/  /'
+        exec_and_display "node -v | sed 's/^/  /'"
         
         echo
         echo "Node.js Platform:"
-        node -p "process.platform" | sed 's/^/  /'
+        exec_and_display "node -p \"process.platform\" | sed 's/^/  /'"
         
         echo
         echo "Node.js Architecture:"
-        node -p "process.arch" | sed 's/^/  /'
+        exec_and_display "node -p \"process.arch\" | sed 's/^/  /'"
     else
         echo "Node.js: Not installed"
     fi
