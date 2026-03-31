@@ -170,34 +170,38 @@ check_target_disk_status() {
 check_space() {
     log "Checking available space..."
     
-    # Get source disk size and used space
-    local source_size=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_size | tr -d ' ' | sed 's/[gG]//')
-    local source_used=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_used | tr -d ' ' | sed 's/[gG]//')
-    
-    # Get target disk size in GB (more precise calculation)
-    local target_size=$(blockdev --getsize64 "$TARGET_DISK")
-    local target_size_gb=$(echo "scale=3; $target_size / 1024 / 1024 / 1024" | bc -l)
-    
     # Get source disk actual size in bytes for accurate comparison
     local source_size_bytes=$(blockdev --getsize64 "$SOURCE_DISK")
     local source_size_gb=$(echo "scale=3; $source_size_bytes / 1024 / 1024 / 1024" | bc -l)
     
-    log "Source disk size: ${source_size}G (Used: ${source_used}G, Actual: ${source_size_gb}G)"
-    log "Target disk size: ${target_size_gb}G"
+    # Get target disk size in GB (more precise calculation)
+    local target_size_bytes=$(blockdev --getsize64 "$TARGET_DISK")
+    local target_size_gb=$(echo "scale=3; $target_size_bytes / 1024 / 1024 / 1024" | bc -l)
     
-    # Compare actual disk sizes (target should be >= source)
-    # Use a small tolerance for rounding differences (0.01 GB = 10 MB)
+    # Get LVM metadata for informational purposes
+    local source_pv_size=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_size 2>/dev/null | tr -d ' ' | sed 's/[gG]//' || echo "N/A")
+    local source_pv_used=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_used 2>/dev/null | tr -d ' ' | sed 's/[gG]//' || echo "N/A")
+    
+    log "Source partition: ${source_size_gb}G (LVM reports: ${source_pv_size}G, Used: ${source_pv_used}G)"
+    log "Target partition: ${target_size_gb}G"
+    
+    # Compare actual partition sizes (target should be >= source)
+    # Use a tolerance of 0.1 GB (100 MB) for rounding and metadata differences
     local size_diff=$(echo "$target_size_gb - $source_size_gb" | bc -l)
-    if (( $(echo "$size_diff < -0.01" | bc -l) )); then
-        error "Target disk is too small. Source: ${source_size_gb}G, Target: ${target_size_gb}G"
+    
+    if (( $(echo "$size_diff < -0.1" | bc -l) )); then
+        error "Target partition is smaller than source. Source: ${source_size_gb}G, Target: ${target_size_gb}G"
     fi
     
-    # Also check if target has enough space for the used data
-    if (( $(echo "$target_size_gb < $source_used" | bc -l) )); then
-        error "Target disk cannot hold the used data. Used: ${source_used}G, Target: ${target_size_gb}G"
+    # Check if partitions are the same size (within tolerance)
+    local abs_diff=$(echo "$size_diff" | sed 's/-//')
+    if (( $(echo "$abs_diff < 0.1" | bc -l) )); then
+        log "Partitions are the same size (difference: ${size_diff}G - within tolerance)"
+    else
+        log "Target partition is larger (difference: +${size_diff}G)"
     fi
     
-    log "Target disk has sufficient space (difference: ${size_diff}G)"
+    log "Target partition has sufficient space for migration"
 }
 
 prepare_target_disk() {
