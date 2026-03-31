@@ -170,22 +170,34 @@ check_target_disk_status() {
 check_space() {
     log "Checking available space..."
     
-    # Get source disk size
-    local source_size=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_size | tr -d ' ' | sed 's/g//')
-    local source_used=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_used | tr -d ' ' | sed 's/g//')
+    # Get source disk size and used space
+    local source_size=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_size | tr -d ' ' | sed 's/[gG]//')
+    local source_used=$(pvs "$SOURCE_DISK" --noheadings --units g -o pv_used | tr -d ' ' | sed 's/[gG]//')
     
-    # Get target disk size
-    local target_size=$(blockdev --getsize64 "$TARGET_DISK" | awk '{print $1/1024/1024/1024}')
+    # Get target disk size in GB (more precise calculation)
+    local target_size=$(blockdev --getsize64 "$TARGET_DISK")
+    local target_size_gb=$(echo "scale=3; $target_size / 1024 / 1024 / 1024" | bc -l)
     
-    log "Source disk size: ${source_size}G (Used: ${source_used}G)"
-    log "Target disk size: ${target_size}G"
+    # Get source disk actual size in bytes for accurate comparison
+    local source_size_bytes=$(blockdev --getsize64 "$SOURCE_DISK")
+    local source_size_gb=$(echo "scale=3; $source_size_bytes / 1024 / 1024 / 1024" | bc -l)
     
-    # Compare sizes (with some margin for metadata)
-    if (( $(echo "$target_size < $source_used * 1.1" | bc -l) )); then
-        error "Target disk is too small. Need at least ${source_used}G, but target has only ${target_size}G"
+    log "Source disk size: ${source_size}G (Used: ${source_used}G, Actual: ${source_size_gb}G)"
+    log "Target disk size: ${target_size_gb}G"
+    
+    # Compare actual disk sizes (target should be >= source)
+    # Use a small tolerance for rounding differences (0.01 GB = 10 MB)
+    local size_diff=$(echo "$target_size_gb - $source_size_gb" | bc -l)
+    if (( $(echo "$size_diff < -0.01" | bc -l) )); then
+        error "Target disk is too small. Source: ${source_size_gb}G, Target: ${target_size_gb}G"
     fi
     
-    log "Target disk has sufficient space"
+    # Also check if target has enough space for the used data
+    if (( $(echo "$target_size_gb < $source_used" | bc -l) )); then
+        error "Target disk cannot hold the used data. Used: ${source_used}G, Target: ${target_size_gb}G"
+    fi
+    
+    log "Target disk has sufficient space (difference: ${size_diff}G)"
 }
 
 prepare_target_disk() {
