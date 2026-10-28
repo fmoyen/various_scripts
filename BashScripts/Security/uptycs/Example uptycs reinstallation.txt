@@ -1,0 +1,220 @@
+###############################################################################################
+###############################################################################################
+UPTYCS
+###############################################################################################
+###############################################################################################
+
+===============================================================================================
+Installation
+
+-----------------------------------------------------------------------------------------------
+CHECK
+
+[root@fabsandbox ~]# systemctl status osqueryd
+● osqueryd.service - The osquery Daemon
+     Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; enabled; preset: disabled)
+     Active: active (running) since Mon 2026-09-14 10:15:01 CEST; 1 week 3 days ago
+    Process: 3294633 ExecStartPre=/bin/sh -c if [ ! -f $FLAG_FILE ]; then touch $FLAG_FILE; fi (code=exited, status=0/SUCCESS)
+    Process: 3294634 ExecStartPre=/bin/sh -c if [ -f $LOCAL_PIDFILE ]; then mv $LOCAL_PIDFILE $PIDFILE; fi (code=exited, status=0/SUCCESS)
+   Main PID: 3294635 (osqueryd)
+      Tasks: 13 (limit: 203582)
+     Memory: 112.5M (peak: 129.1M)
+        CPU: 2h 50min 49.937s
+     CGroup: /system.slice/osqueryd.service
+             ├─ 707557 /usr/bin/osqueryd
+             └─3294635 /usr/bin/osqueryd --flagfile /etc/osquery/osquery.flags --config_path /etc/osquery/osquery.conf
+
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: Failed to read system uuid
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: Details:
+                                                         cloud_info. EMPTY
+                                                         container_version. EMPTY
+                                                         gpu_info. EMPTY
+                                                         os_version. _id: 9.8, arch: s390x, build: , major: 9, minor: 8, name: Red Hat Enterprise Linux, patch: 0, p>
+                                                         osquery_info. build_distro: xenial, build_name: Monsoon, build_platform: ubuntu, build_time: 2026-06-25T12:>
+                                                         osquery_tags. key: UPDATES, number: 1, value: TEST, key: UT, number: 2, value: 10C00, key: OWNER, number: 3>
+                                                         platform_info. EMPTY
+                                                         system_info. board_model: 721-A01, board_serial: 0000000000071FB8, board_vendor: IBM, computer_name: fabsan>
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: /etc/osquery/denylist_tables file does not exist
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: TLS/HTTPS POST request to URI: https://systems.uptycs.io/agent/enroll. Content size: 5564
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: Checking connection of category: direct
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: Checking connection with non proxy Host = systems.uptycs.io and port = 443
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: Connection successful with non proxy Host = systems.uptycs.io and port = 443
+Sep 24 11:39:09 fabsandbox.dcry.iccmop osqueryd[707557]: Found connectivity with direct host systems.uptycs.io
+Sep 24 11:39:10 fabsandbox.dcry.iccmop osqueryd[707557]: TLS/HTTPS POST response from URI: https://systems.uptycs.io/agent/enroll. Status: 422. Content size: 110
+Sep 24 11:39:10 fabsandbox.dcry.iccmop osqueryd[707557]: No secret or host_identifier provided
+
+[root@fabsandbox ~]# rpm -qva | grep -i upty
+uptycs-protect-5.22.1.11-1.s390x
+
+[root@fabsandbox ~]# dnf list | grep uptycs
+uptycs-protect.s390x                                 5.22.1.11-1                        @System
+
+[root@fabsandbox ~]# osqueryi "select * from osquery_tags;"
+W0924 11:43:00.727468 708053 flags_update.cpp:65]  Could not stat flags file. Error = No such file or directory
+E0924 11:43:00.727919 708053 config.cpp:824] updateSource failed to parse config, of source: /etc/osquery/osquery.conf and content:
++--------+---------+-----------+
+| number | key     | value     |
++--------+---------+-----------+
+| 1      | UPDATES | TEST      |
+| 2      | UT      | 10C00     |
+| 3      | OWNER   | 081273706 |
++--------+---------+-----------+
+
+=> Uptycs already installed and tags are not correct according to Emmanuelle Passot (I was using the ones used in the doc !)
+
+-----------------------------------------------------------------------------------------------
+UNINSTALLATION
+
+[root@fabsandbox fmoyen]# dnf list | grep uptycs
+uptycs-protect.s390x                                 5.23.1.7-1                         @System
+
+[root@fabsandbox fmoyen]# systemctl status osqueryd
+● osqueryd.service - The osquery Daemon
+     Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-09-24 11:47:26 CEST; 2h 36min ago
+   Main PID: 708394 (osqueryd)
+      Tasks: 5 (limit: 203582)
+     Memory: 20.2M (peak: 26.1M)
+        CPU: 1min 42.401s
+     CGroup: /system.slice/osqueryd.service
+             ├─708394 /usr/bin/osqueryd --flagfile /etc/osquery/osquery.flags --config_path /etc/osquery/osquery.conf
+             └─726016 /usr/bin/osqueryd
+
+Sep 24 14:23:25 fabsandbox.dcry.iccmop osqueryd[725926]: Service: IOServiceRunner has been interrupted.
+Sep 24 14:23:25 fabsandbox.dcry.iccmop osqueryd[725926]: Service: OsqCompationJob has been interrupted.
+Sep 24 14:23:25 fabsandbox.dcry.iccmop osqueryd[725926]: Thread: 4396200946432 requesting a join
+Sep 24 14:23:27 fabsandbox.dcry.iccmop osqueryd[725926]: Service thread: 0x2aa0d366240 has joined
+Sep 24 14:23:27 fabsandbox.dcry.iccmop osqueryd[725926]: Service thread: 0x2aa0d366188 has joined
+Sep 24 14:23:27 fabsandbox.dcry.iccmop osqueryd[725926]: Services and threads have been cleared
+Sep 24 14:23:28 fabsandbox.dcry.iccmop osqueryd[726016]: osquery worker initialized [version=5.23.1.7-Uptycs-Protect. watcher=708394]
+Sep 24 14:23:28 fabsandbox.dcry.iccmop osqueryd[726016]: core dump is disabled
+Sep 24 14:23:28 fabsandbox.dcry.iccmop osqueryd[726016]: tcmalloc.aggressive_memory_decommit done
+Sep 24 14:23:28 fabsandbox.dcry.iccmop osqueryd[726016]: tcmalloc.max_total_thread_cache_bytes set to default minimum
+
+[root@fabsandbox fmoyen]# systemctl stop osqueryd
+[root@fabsandbox fmoyen]# systemctl disable osqueryd
+Removed "/etc/systemd/system/multi-user.target.wants/osqueryd.service".
+
+[root@fabsandbox fmoyen]# dnf remove uptycs-protect.s390x
+...
+Removed:
+  uptycs-protect-5.23.1.7-1.s390x
+
+-----------------------------------------------------------------------------------------------
+INSTALLATION
+
+[root@fabsandbox fmoyen]# dnf install ./assets-uptycs-protect-5.23.1.7-Uptycs.s390x.rpm
+Updating Subscription Management repositories.
+Last metadata expiration check: 0:00:27 ago on Thu 24 Sep 2026 02:26:52 PM CEST.
+Dependencies resolved.
+=====================================================================================================================================================================
+ Package                                    Architecture                      Version                                 Repository                                Size
+=====================================================================================================================================================================
+Installing:
+ uptycs-protect                             s390x                             5.23.1.7-1                              @commandline                              17 M
+
+Transaction Summary
+=====================================================================================================================================================================
+Install  1 Package
+
+Total size: 17 M
+Installed size: 56 M
+Is this ok [y/N]: y
+Downloading Packages:
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                             1/1
+  Installing       : uptycs-protect-5.23.1.7-1.s390x                                                                                                             1/1
+  Running scriptlet: uptycs-protect-5.23.1.7-1.s390x                                                                                                             1/1
+Redirecting to /bin/systemctl start osqueryd.service
+
+  Verifying        : uptycs-protect-5.23.1.7-1.s390x                                                                                                             1/1
+Installed products updated.
+
+Installed:
+  uptycs-protect-5.23.1.7-1.s390x
+
+Complete!
+
+[root@fabsandbox fmoyen]# dnf list | grep uptycs
+uptycs-protect.s390x                                 5.23.1.7-1                         @@commandline
+
+[root@fabsandbox fmoyen]# systemctl status osqueryd
+● osqueryd.service - The osquery Daemon
+     Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-09-24 14:27:48 CEST; 37s ago
+   Main PID: 726314 (osqueryd)
+      Tasks: 51 (limit: 203582)
+     Memory: 144.9M (peak: 155.5M)
+        CPU: 3.164s
+     CGroup: /system.slice/osqueryd.service
+             ├─726314 /usr/bin/osqueryd --flagfile /etc/osquery/osquery.flags --config_path /etc/osquery/osquery.conf
+             ├─726318 /usr/bin/osqueryd
+             └─726408 /usr/bin/uptycs-protect FAN
+
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: TLS/HTTPS download response from URI: https://techzone.uptycs.io/agent/download/yaraGroupRule/9e51833a-6746>
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: YARA loaded rule group 5227ea1c-f5af-4347-be43-522a3a5b7c7f from cloud
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: Compiled 11 YARA entries for process scanning/monitoring/blocking. 0 error(s) encountered.
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: Database YARA group cache notfound/invalid, ignoring
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: TLS/HTTPS download request to URI: https://techzone.uptycs.io/agent/download/yaraGroupRule/9e51833a-6746-49>
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: TLS/HTTPS download response from URI: https://techzone.uptycs.io/agent/download/yaraGroupRule/9e51833a-6746>
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: YARA loaded rule group 3349ebd6-78d5-4ad8-bfdf-4a6b23e7f626 from cloud
+Sep 24 14:28:04 fabsandbox.dcry.iccmop osqueryd[726318]: Compiled 5 YARA entries for process scanning/monitoring/blocking. 0 error(s) encountered.
+Sep 24 14:28:09 fabsandbox.dcry.iccmop uptycs-protect[726408]: 726408: 000000001998 - OSQ ev connect: 7
+Sep 24 14:28:09 fabsandbox.dcry.iccmop uptycs-protect[726408]: 726408: 000000001998 - tiUpdate: hashes: 8, bpaths: 0, lpaths: 0, apaths: 3, mode: MONITOR
+
+-----------------------------------------------------------------------------------------------
+CONFIG & CHECK
+
+[root@fabsandbox fmoyen]# osqueryd --osquery_tags "UPDATE/PROD, UT/TechZone, CCODE/TechZone, DATACENTER/MOP"
+
+[root@fabsandbox fmoyen]# systemctl status osqueryd
+● osqueryd.service - The osquery Daemon
+     Loaded: loaded (/usr/lib/systemd/system/osqueryd.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-09-24 14:27:48 CEST; 3min 2s ago
+   Main PID: 726314 (osqueryd)
+      Tasks: 51 (limit: 203582)
+     Memory: 144.9M (peak: 155.5M)
+        CPU: 6.743s
+     CGroup: /system.slice/osqueryd.service
+             ├─726314 /usr/bin/osqueryd --flagfile /etc/osquery/osquery.flags --config_path /etc/osquery/osquery.conf
+             ├─726408 /usr/bin/uptycs-protect FAN
+             └─726481 /usr/bin/osqueryd
+
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: Adding run now query SELECT *, datetime(not_valid_before, 'unixepoch') as valid_from, datetime(not_valid_af>
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: Adding run now query select  device,mounts.path, mounts.type, device_alias, disk_encryption.encrypted disk_>
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: Adding run now query select username,description,directory,shell from users
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: Adding run now query select label, value from augeas where lens = 'simplelines' and path = '/etc/tenable_ta>
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: Osquery flags in sync with config
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: YARA loaded rule group 5227ea1c-f5af-4347-be43-522a3a5b7c7f from database
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: Compiled 11 YARA entries for process scanning/monitoring/blocking. 0 error(s) encountered.
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: YARA loaded rule group 3349ebd6-78d5-4ad8-bfdf-4a6b23e7f626 from database
+Sep 24 14:29:16 fabsandbox.dcry.iccmop osqueryd[726481]: Compiled 5 YARA entries for process scanning/monitoring/blocking. 0 error(s) encountered.
+Sep 24 14:29:19 fabsandbox.dcry.iccmop uptycs-protect[726408]: 726408: 000000072003 - OSQ ev connect: 9
+
+[root@fabsandbox fmoyen]# osqueryi "select * from osquery_tags;"
+W0924 14:31:47.713428 726676 flags_update.cpp:65]  Could not stat flags file. Error = No such file or directory
+E0924 14:31:47.713905 726676 config.cpp:824] updateSource failed to parse config, of source: /etc/osquery/osquery.conf and content:
++--------+------------+----------+
+| number | key        | value    |
++--------+------------+----------+
+| 1      | UPDATE     | PROD     |
+| 2      | UT         | TechZone |
+| 3      | CCODE      | TechZone |
+| 4      | DATACENTER | MOP      |
++--------+------------+----------+
+
+[root@fabsandbox fmoyen]# osqueryi "SELECT device_uuid FROM system_info;"
+W0924 14:34:16.760828 726719 flags_update.cpp:65]  Could not stat flags file. Error = No such file or directory
+E0924 14:34:16.761304 726719 config.cpp:824] updateSource failed to parse config, of source: /etc/osquery/osquery.conf and content:
+W0924 14:34:16.790875 726719 system.cpp:417] /proc/sysinfo missing 'LPAR UUID:'
+W0924 14:34:16.790887 726719 system.cpp:438] Failed to read system uuid
++-------------+
+| device_uuid |
++-------------+
+|             |
++-------------+
+

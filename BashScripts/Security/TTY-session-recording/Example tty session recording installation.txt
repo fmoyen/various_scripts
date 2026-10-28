@@ -1,0 +1,105 @@
+###############################################################################################
+###############################################################################################
+SECONDARY LOGGING - TTY SESSION RECORDING
+###############################################################################################
+###############################################################################################
+
+===============================================================================================
+Request
+
+If not already done, can you please update the configuration of your Linux systems as following ? And inform me by mail return when it is done ?
+
+1. Enable sudo Command Logging
+2. Enable auditd
+3. Enable TTY Session Recording
+
+===============================================================================================
+
+Activer le journal des commandes sudo
+-------------------------------------
+
+[root@fabsandbox ~]# visudo
+...
+Defaults logfile="/var/log/sudo.log"
+
+[root@fabsandbox ~]# sudo ls
+anaconda-ks.cfg  kvm-hostbridge.xml  macvtap.xml  PVMigrate
+
+[root@fabsandbox ~]# cat /var/log/sudo.log
+Jul 29 15:28:13 : root : TTY=pts/2 ; PWD=/root ; USER=root ; COMMAND=/bin/ls
+
+
+Activer et démarrer auditd
+--------------------------
+
+[root@fabsandbox ~]# dnf install -y audit
+Updating Subscription Management repositories.
+Last metadata expiration check: 0:24:18 ago on Wed 29 Jul 2026 03:11:51 PM CEST.
+Package audit-3.1.5-8.el9.s390x is already installed.
+Dependencies resolved.
+Nothing to do.
+Complete!
+
+[root@fabsandbox ~]# systemctl enable --now auditd
+
+[root@fabsandbox ~]# systemctl status auditd
+● auditd.service - Security Auditing Service
+     Loaded: loaded (/usr/lib/systemd/system/auditd.service; enabled; preset: enabled)
+     Active: active (running) since Wed 2026-07-29 11:36:08 CEST; 4h 0min ago
+       Docs: man:auditd(8)
+             https://github.com/linux-audit/audit-documentation
+   Main PID: 1188 (auditd)
+      Tasks: 4 (limit: 203582)
+     Memory: 4.7M (peak: 6.2M)
+        CPU: 44ms
+     CGroup: /system.slice/auditd.service
+             ├─1188 /sbin/auditd
+             └─1190 /usr/sbin/sedispatch
+
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: enabled 1
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: failure 1
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: pid 1188
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: rate_limit 0
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: backlog_limit 8192
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: lost 0
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: backlog 8
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: backlog_wait_time 60000
+Jul 29 11:36:08 fabsandbox.dcry.iccmop augenrules[1208]: backlog_wait_time_actual 0
+Jul 29 11:36:08 fabsandbox.dcry.iccmop systemd[1]: Started Security Auditing Service.
+
+[root@fabsandbox ~]# ausearch  -ts recent
+----
+time->Wed Jul 29 15:37:04 2026
+type=BPF msg=audit(1785332224.776:369): prog-id=104 op=LOAD
+----
+time->Wed Jul 29 15:37:04 2026
+type=BPF msg=audit(1785332224.776:370): prog-id=90 op=UNLOAD
+----
+time->Wed Jul 29 15:37:04 2026
+type=BPF msg=audit(1785332224.776:371): prog-id=105 op=LOAD
+...
+
+
+Activer l'enregistrement des sessions TTY
+-----------------------------------------
+Option A : Via PAM (pam_tty_audit) – natif et léger
+
+[root@fabsandbox ~]# vi /etc/pam.d/sshd
+...
+session    required     pam_tty_audit.so enable=*
+
+Checking:
+[root@fabsandbox ~]# aureport --tty
+
+TTY Report
+===============================================
+# date time event auid term sess comm data
+===============================================
+1. 07/29/2026 15:47:47 451 1000 pts3 6 bash "ls7",<backspace>,<ret>
+2. 07/29/2026 15:47:47 452 1000 ? 6 ? "ls\000"
+3. 07/29/2026 15:48:24 456 1000 pts3 6 bash <^D>
+4. 07/29/2026 15:48:24 459 1000 pts0 6 sudo "ls7",<backspace>,<ret>,<^D>
+5. 07/29/2026 15:49:09 467 1000 pts3 6 bash "pwd",<ret>
+6. 07/29/2026 15:49:09 468 1000 ? 6 ? "pwd"
+7. 07/29/2026 15:49:26 469 1000 pts3 6 bash <^R>,"vi ",<ret>
+8. 07/29/2026 15:49:26 470 1000 ? 6 ? "vi /etc/pam.d/sshd "
